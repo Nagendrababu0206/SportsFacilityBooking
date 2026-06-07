@@ -22,12 +22,21 @@ export default function Venues() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const loc = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          });
+          };
+          console.log('📍 User location obtained:', loc);
+          setUserLocation(loc);
         },
-        () => setUserLocation(null)
+        (error) => {
+          console.warn('📍 Location permission denied or unavailable:', error.message);
+          // Set a default location (campus center) as fallback
+          setUserLocation({
+            lat: 37.4264,
+            lng: -122.1699
+          });
+        }
       );
     }
   }, [token, navigate]);
@@ -37,6 +46,7 @@ export default function Venues() {
       const res = await fetch('http://localhost:5000/api/courts');
       const data = await res.json();
       if (data.success) {
+        console.log('🏟️  Courts fetched:', data.data.map(c => ({ name: c.name, hasLocation: !!c.location, location: c.location })));
         setCourts(data.data);
       } else {
         setError('Unable to load venues right now.');
@@ -66,12 +76,14 @@ export default function Venues() {
   };
 
   const sortedCourts = useMemo(() => {
-    return courts
+    const mapped = courts
       .map((court) => {
         if (userLocation && court.location?.lat && court.location?.lng) {
+          const dist = calculateDistance(userLocation.lat, userLocation.lng, court.location.lat, court.location.lng);
+          console.log(`📍 ${court.name}: ${dist.toFixed(1)} km`);
           return {
             ...court,
-            distance: calculateDistance(userLocation.lat, userLocation.lng, court.location.lat, court.location.lng)
+            distance: dist
           };
         }
         return court;
@@ -82,6 +94,9 @@ export default function Venues() {
         }
         return a.name.localeCompare(b.name);
       });
+    
+    console.log('📊 Courts sorted by distance:', mapped.map(c => ({ name: c.name, distance: c.distance })));
+    return mapped;
   }, [courts, userLocation]);
 
   if (loading) {
@@ -123,7 +138,7 @@ export default function Venues() {
           </div>
           <span className="location-pill">
             <MapPin size={16} />
-            {userLocation ? 'Showing nearest sports grounds first' : 'Enable location to show nearest venues'}
+            {userLocation ? 'Showing nearest sports grounds first' : 'Enable location for personalized venue sorting'}
           </span>
         </div>
 

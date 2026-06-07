@@ -42,12 +42,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log(`🔐 [AUTH] Sending login request to backend: email=${email}`);
       const res = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
+      console.log(`🔐 [AUTH] Backend login response:`, { success: data.success, message: data.message, hasToken: !!data.token });
+      
       if (data.success) {
         setToken(data.token);
         setUser(data.user);
@@ -56,18 +59,22 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: data.message };
       }
     } catch (err) {
+      console.error(`🔐 [AUTH] Login error:`, err);
       return { success: false, message: 'Server connection failed.' };
     }
   };
 
   const register = async (email, password) => {
     try {
+      console.log(`📝 [AUTH] Sending register request to backend: email=${email}`);
       const res = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
+      console.log(`📝 [AUTH] Backend register response:`, { success: data.success, message: data.message, hasToken: !!data.token });
+      
       if (data.success) {
         setToken(data.token);
         setUser(data.user);
@@ -76,6 +83,7 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: data.message };
       }
     } catch (err) {
+      console.error(`📝 [AUTH] Register error:`, err);
       return { success: false, message: 'Server connection failed.' };
     }
   };

@@ -42,8 +42,11 @@ router.post('/register', async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    console.log(`📝 [REGISTER] New registration attempt for email: ${normalizedEmail}`);
+
     const userExists = await model.findOne({ email: normalizedEmail });
     if (userExists) {
+      console.log(`⚠️  [REGISTER] User already exists: ${normalizedEmail}`);
       return res.status(400).json({ success: false, message: 'User already exists with this email' });
     }
 
@@ -56,8 +59,10 @@ router.post('/register', async (req, res) => {
       role: 'user'
     });
 
+    console.log(`✅ [REGISTER] User created successfully: ${normalizedEmail}`);
     sendTokenResponse(user, 201, res);
   } catch (error) {
+    console.error(`❌ [REGISTER ERROR]: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -75,14 +80,20 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+    console.log(`🔐 [LOGIN] Attempting login for email: ${normalizedEmail}`);
+
     let user;
     if (process.env.MOCK_DB === 'true') {
-      user = await model.findOne({ email });
+      user = await model.findOne({ email: normalizedEmail });
+      console.log(`🔐 [MOCK_DB] User found: ${user ? 'Yes' : 'No'}`);
     } else {
-      user = await User.findOne({ email }).select('+password');
+      user = await User.findOne({ email: normalizedEmail }).select('+password');
+      console.log(`🔐 [MongoDB] User found: ${user ? 'Yes' : 'No'}`);
     }
 
     if (!user) {
+      console.log(`❌ [LOGIN] User not found with email: ${normalizedEmail}`);
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
@@ -90,16 +101,21 @@ router.post('/login', async (req, res) => {
     let isMatch;
     if (process.env.MOCK_DB === 'true') {
       isMatch = await model.matchPassword(password, user.password);
+      console.log(`🔐 [MOCK_DB] Password match: ${isMatch}`);
     } else {
       isMatch = await user.matchPassword(password);
+      console.log(`🔐 [MongoDB] Password match: ${isMatch}`);
     }
 
     if (!isMatch) {
+      console.log(`❌ [LOGIN] Password mismatch for email: ${normalizedEmail}`);
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    console.log(`✅ [LOGIN] Successful login for email: ${normalizedEmail}`);
     sendTokenResponse(user, 200, res);
   } catch (error) {
+    console.error(`❌ [LOGIN ERROR]: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });

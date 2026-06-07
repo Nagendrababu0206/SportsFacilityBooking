@@ -23,10 +23,17 @@ export default function Login() {
     setError('');
     setSubmitting(true);
 
-    const res = await login(email.trim().toLowerCase(), password);
+    const normalizedEmail = email.trim().toLowerCase();
+    console.log(`📝 [LOGIN FORM] Submitting login with email: ${normalizedEmail}, password length: ${password.length}`);
+
+    const res = await login(normalizedEmail, password);
+    console.log(`📝 [LOGIN FORM] Backend response:`, res);
+    
     if (res.success) {
+      console.log(`✅ [LOGIN FORM] Login successful, redirecting...`);
       navigate('/', { replace: true });
     } else {
+      console.log(`❌ [LOGIN FORM] Login failed: ${res.message}`);
       setError(res.message || 'Invalid credentials.');
     }
     setSubmitting(false);

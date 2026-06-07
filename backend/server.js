@@ -133,26 +133,7 @@ const seedCourts = async () => {
       console.log('🎉 [Seeder] Sports facilities successfully imported to cloud!');
     }
 
-    // Now let's register two default accounts so the demo works right out of the box!
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      console.log('🌱 [Seeder] Creating pre-configured student and admin accounts...');
-      await User.create([
-        {
-          name: 'Demo Student',
-          email: 'student@demo.com',
-          password: '123456',
-          role: 'user'
-        },
-        {
-          name: 'Demo Sports Admin',
-          email: 'admin@demo.com',
-          password: '123456',
-          role: 'admin'
-        }
-      ]);
-      console.log('🎉 [Seeder] Demo accounts successfully preseeded!');
-    }
+
   } catch (error) {
     console.error(`⚠️ [Seeder] Seed failed: ${error.message}`);
   }
