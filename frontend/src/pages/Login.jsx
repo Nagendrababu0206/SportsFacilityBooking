@@ -24,16 +24,11 @@ export default function Login() {
     setSubmitting(true);
 
     const normalizedEmail = email.trim().toLowerCase();
-    console.log(`📝 [LOGIN FORM] Submitting login with email: ${normalizedEmail}, password length: ${password.length}`);
-
     const res = await login(normalizedEmail, password);
-    console.log(`📝 [LOGIN FORM] Backend response:`, res);
     
     if (res.success) {
-      console.log(`✅ [LOGIN FORM] Login successful, redirecting...`);
       navigate('/', { replace: true });
     } else {
-      console.log(`❌ [LOGIN FORM] Login failed: ${res.message}`);
       setError(res.message || 'Invalid credentials.');
     }
     setSubmitting(false);
@@ -88,7 +83,7 @@ export default function Login() {
           </div>
 
           <button type="submit" disabled={submitting} className="btn btn-primary">
-            {submitting ? 'Authenticating...' : 'Sign In'}
+            {submitting ? ' Login Success / Now Loading Session' : 'Sign In'}
           </button>
           </form>
         )}

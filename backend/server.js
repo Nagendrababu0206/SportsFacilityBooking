@@ -77,6 +77,11 @@ const seedCourts = async () => {
           description: "Premium synthetic tennis court with advanced indoor temperature regulation, crystal-clear lighting, and professional ball machines.",
           pricePerHour: 40,
           capacity: 4,
+          location: {
+            lat: 37.4275,
+            lng: -122.1697,
+            address: "1 Tennis Ave, Campus City"
+          },
           imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
           rules: [
             "Non-marking tennis shoes required at all times.",
@@ -91,6 +96,11 @@ const seedCourts = async () => {
           description: "Vibrant indoor court with premium maple wood flooring, adjustable hoops, electronic scoreboards, and full surround-sound audio.",
           pricePerHour: 60,
           capacity: 10,
+          location: {
+            lat: 37.4260,
+            lng: -122.1710,
+            address: "22 Champion Way, Campus City"
+          },
           imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80&w=800",
           rules: [
             "Proper indoor basketball shoes are required.",
@@ -105,6 +115,11 @@ const seedCourts = async () => {
           description: "Ultra-cushioned court mats with dedicated high-performance glare-free LED lighting to track your shuttles perfectly.",
           pricePerHour: 25,
           capacity: 4,
+          location: {
+            lat: 37.4286,
+            lng: -122.1694,
+            address: "8 Shuttle Drive, Campus City"
+          },
           imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
           rules: [
             "Badminton non-marking shoes are compulsory.",
@@ -119,6 +134,11 @@ const seedCourts = async () => {
           description: "Elite outdoor 5-a-side AstroTurf football pitch equipped with stadium-grade floodlights, premium netting, and rebound walls.",
           pricePerHour: 80,
           capacity: 12,
+          location: {
+            lat: 37.4252,
+            lng: -122.1708,
+            address: "46 Turf Lane, Campus City"
+          },
           imageUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800",
           rules: [
             "Astroturf or flat-soled football shoes only (No metal cleats allowed).",

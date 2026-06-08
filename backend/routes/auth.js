@@ -42,11 +42,8 @@ router.post('/register', async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    console.log(`📝 [REGISTER] New registration attempt for email: ${normalizedEmail}`);
-
     const userExists = await model.findOne({ email: normalizedEmail });
     if (userExists) {
-      console.log(`⚠️  [REGISTER] User already exists: ${normalizedEmail}`);
       return res.status(400).json({ success: false, message: 'User already exists with this email' });
     }
 
@@ -59,10 +56,8 @@ router.post('/register', async (req, res) => {
       role: 'user'
     });
 
-    console.log(`✅ [REGISTER] User created successfully: ${normalizedEmail}`);
     sendTokenResponse(user, 201, res);
   } catch (error) {
-    console.error(`❌ [REGISTER ERROR]: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });

@@ -102,6 +102,233 @@ router.get('/suggestions', protect, async (req, res) => {
   }
 });
 
+// @desc    Get heatmap demand analysis for a court/date range
+// @route   GET /api/analytics/heatmap
+// @access  Private
+router.get('/heatmap', protect, async (req, res) => {
+  try {
+    const { courtId, date, days = '7' } = req.query;
+    const courtModel = dbCourt();
+    const bookingModel = dbBooking();
+
+    const targetCourtId = courtId || null;
+    const courts = targetCourtId
+      ? [await courtModel.findById(targetCourtId)].filter(Boolean)
+      : await courtModel.find({ isActive: true });
+
+    const allBookings = await bookingModel.find({ status: 'confirmed' });
+    const requestedDate = date || new Date().toISOString().split('T')[0];
+    const rangeDays = Math.min(parseInt(days, 10) || 7, 90);
+    const historyStart = new Date(requestedDate);
+    historyStart.setDate(historyStart.getDate() - rangeDays);
+    const historyStartStr = historyStart.toISOString().split('T')[0];
+
+    const analyzeCourt = (court) => {
+      const courtIdStr = court._id.toString();
+      const targetBookings = allBookings.filter(b => {
+        const bCourtId = b.court._id ? b.court._id.toString() : b.court.toString();
+        return bCourtId === courtIdStr && b.date >= historyStartStr && b.date <= requestedDate;
+      });
+      const targetDateBookings = targetBookings.filter(b => b.date === requestedDate);
+
+      const demandByHour = new Array(24).fill(0);
+      const bookingDurations = [];
+      targetDateBookings.forEach((b) => {
+        const startHour = parseInt(b.startTime.split(':')[0], 10);
+        const endHour = parseInt(b.endTime.split(':')[0], 10);
+        const duration = endHour - startHour;
+        for (let h = startHour; h < endHour && h < 24; h++) {
+          demandByHour[h] += 1;
+        }
+        bookingDurations.push({ startHour, duration, endHour });
+      });
+
+      const historicalByHour = new Array(24).fill(0);
+      targetBookings.forEach((b) => {
+        const startHour = parseInt(b.startTime.split(':')[0], 10);
+        const endHour = parseInt(b.endTime.split(':')[0], 10);
+        for (let h = startHour; h < endHour && h < 24; h++) {
+          historicalByHour[h] += 1;
+        }
+      });
+
+      const nonZeroDemands = demandByHour.filter((d) => d > 0);
+      const totalBookingsInWindow = targetDateBookings.length;
+      const dataPoints = targetBookings.length;
+      const confidence =
+        dataPoints < 5 ? 'Low' : dataPoints < 20 ? 'Medium' : 'High';
+      const confidenceScore = Math.min(dataPoints / 40, 1);
+
+      const percentile75 = nonZeroDemands.length
+        ? nonZeroDemands[Math.floor(nonZeroDemands.length * 0.75)] || 1
+        : 1;
+      const maxDemand = Math.max(...demandByHour, 1);
+
+      const slots = demandByHour.map((demand, hour) => {
+        const historicalDemand = historicalByHour[hour] || 0;
+        const ratio = demand / maxDemand;
+        const historicalRatio = historicalDemand
+          ? demand / historicalDemand
+          : demand === 0
+          ? 0
+          : 1;
+        let level = 'Quiet';
+        if (ratio >= 0.75 || demand >= percentile75) level = 'High';
+        else if (ratio >= 0.3 || demand >= 1) level = 'Moderate';
+
+        const anomaly = historicalByHour[hour] > 0 && historicalRatio > 1.5;
+        const belowAverage = historicalByHour[hour] > 0 && historicalRatio < 0.5;
+
+        return {
+          hour,
+          start: `${hour.toString().padStart(2, '0')}:00`,
+          end: `${(hour + 1).toString().padStart(2, '0')}:00`,
+          label: `${hour.toString().padStart(2, '0')}:00-${(hour + 1).toString().padStart(2, '0')}`,
+          demand,
+          level,
+          ratio: Math.round(ratio * 100) / 100,
+          historicalAvg: Math.round((historicalDemand / Math.max(rangeDays, 1)) * 100) / 100,
+          anomaly,
+          belowAverage,
+          confidence
+        };
+      });
+
+      const quietSlots = slots
+        .filter((s) => s.level === 'Quiet')
+        .map((s) => s.label);
+      const moderateSlots = slots
+        .filter((s) => s.level === 'Moderate')
+        .map((s) => s.label);
+      const peakSlots = slots
+        .filter((s) => s.level === 'High')
+        .map((s) => s.label);
+
+      const bestQuietSlot =
+        quietSlots.length > 0
+          ? quietSlots.reduce((best, current) => {
+              const currSlot = slots.find((s) => s.label === current);
+              const bestSlot = slots.find((s) => s.label === best);
+              if (!currSlot) return best;
+              if (!bestSlot) return current;
+              return currSlot.historicalAvg < bestSlot.historicalAvg
+                ? current
+                : best;
+            }, quietSlots[0])
+          : null;
+
+      const demandScore = Math.round(
+        slots.reduce((sum, s) => sum + s.demand, 0) / (court.capacity || 1)
+      );
+      const opportunityScore = quietSlots.length
+        ? Math.round((quietSlots.length / slots.length) * 100)
+        : 0;
+
+      const trends = [];
+      if (rangeDays >= 7) {
+        const lastWeek = targetBookings.filter((b) => {
+          const d = new Date(b.date);
+          const ref = new Date(requestedDate);
+          ref.setDate(ref.getDate() - 7);
+          return b.date > ref.toISOString().split('T')[0];
+        }).length;
+        const prevWeek = targetBookings.filter((b) => {
+          const d = new Date(b.date);
+          const ref1 = new Date(requestedDate);
+          ref1.setDate(ref1.getDate() - 7);
+          const ref2 = new Date(requestedDate);
+          ref2.setDate(ref2.getDate() - 14);
+          return b.date > ref2.toISOString().split('T')[0] && b.date <= ref1.toISOString().split('T')[0];
+        }).length;
+        if (prevWeek > 0) {
+          const change = ((lastWeek - prevWeek) / prevWeek) * 100;
+          trends.push({
+            period: 'Week over Week',
+            change: Math.round(change),
+            direction: change > 0 ? 'up' : change < 0 ? 'down' : 'stable'
+          });
+        }
+      }
+
+      let recommendation = '';
+      if (quietSlots.length > 0) {
+        recommendation = `Optimized booking strategy: choose ${quietSlots.length} low-demand window(s) — ${quietSlots.slice(0, 3).join(', ')}${quietSlots.length > 3 ? '...' : ''}. ${
+          bestQuietSlot
+            ? `Best pick: ${bestQuietSlot}, historically least loaded.`
+            : ''
+        }`;
+      } else if (moderateSlots.length > 0) {
+        recommendation = `Demand is concentrated. Moderate windows: ${moderateSlots.slice(0, 3).join(', ')}. No quiet slots available today.`;
+      } else {
+        recommendation = `Peak load across all slots. Consider nearby courts or alternate dates for better availability.`;
+      }
+
+      const insights = [];
+      const morningPeak = slots
+        .filter((s) => s.hour >= 7 && s.hour < 10)
+        .some((s) => s.level === 'High');
+      const eveningPeak = slots
+        .filter((s) => s.hour >= 17 && s.hour < 21)
+        .some((s) => s.level === 'High');
+      const lateNightDip = slots
+        .filter((s) => s.hour >= 21 && s.hour < 23)
+        .every((s) => s.level === 'Quiet');
+
+      if (morningPeak && eveningPeak) {
+        insights.push('Double peak pattern detected: morning and evening rush.');
+      } else if (eveningPeak) {
+        insights.push('Evening peak dominates; early slots may be easier.');
+      }
+      if (lateNightDip) {
+        insights.push('Late night (21:00+) consistently quiet in this dataset.');
+      }
+      const loadVariance = Math.round(
+        (Math.max(...demandByHour) / Math.max(demandScore, 1)) * 100
+      );
+      if (loadVariance > 300) {
+        insights.push('High variance today; some slots are extremely loaded while others are free.');
+      }
+      if (anomaly) {
+        insights.push('Anomaly detected: some slots exceed historical patterns.');
+      }
+      if (totalBookingsInWindow >= court.capacity * 3) {
+        insights.push(`Near-capacity utilization detected: ${totalBookingsInWindow} bookings vs capacity ${court.capacity}.`);
+      }
+
+      if (insights.length === 0 && totalBookingsInWindow === 0) {
+        insights.push('No bookings yet for this date; strong availability expected.');
+      }
+
+      return {
+        courtId: court._id,
+        courtName: court.name,
+        sport: court.sport,
+        capacity: court.capacity,
+        pricePerHour: court.pricePerHour,
+        analysisDate: requestedDate,
+        dataConfidence: confidence,
+        confidenceScore,
+        slots,
+        demandScore,
+        opportunityScore,
+        quietSlots,
+        moderateSlots,
+        peakSlots,
+        bestQuietSlot,
+        recommendation,
+        insights,
+        trends
+      };
+    };
+
+    const heatmap = courts.map(analyzeCourt);
+
+    res.status(200).json({ success: true, heatmap });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // @desc    Get user's monthly sports booking usage analytics
 // @route   GET /api/analytics/usage
 // @access  Private

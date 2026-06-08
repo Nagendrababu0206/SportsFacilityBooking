@@ -19,22 +19,24 @@ export default function BookingPage() {
   const [selectedSlot, setSelectedSlot] = useState(null); // format: { start, end, label }
   const [numberOfPlayers, setNumberOfPlayers] = useState(2);
   
+  // Heatmap States
+  const [heatmap, setHeatmap] = useState(null);
+  const [heatmapLoading, setHeatmapLoading] = useState(false);
+  const [quietSlots, setQuietSlots] = useState([]);
+  
   // Payment & Submission States
   const [showUpiModal, setShowUpiModal] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  const formatINR = (value) => {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
-  };
+  const formatINR = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
 
-  // Define full operating slots (07:00 to 22:00)
   const availableHours = [
     { start: '07:00', end: '08:00', label: '07:00 - 08:00 AM' },
     { start: '08:00', end: '09:00', label: '08:00 - 09:00 AM' },
     { start: '09:00', end: '10:00', label: '09:00 - 10:00 AM' },
     { start: '10:00', end: '11:00', label: '10:00 - 11:00 AM' },
-    { start: '11:00', end: '12:00', label: '11:00 - 12:00 PM' },
+    { start: '11:00', end: '12:00', label: '11:00 AM - 12:00 PM' },
     { start: '12:00', end: '13:00', label: '12:00 - 01:00 PM' },
     { start: '13:00', end: '14:00', label: '01:00 - 02:00 PM' },
     { start: '14:00', end: '15:00', label: '02:00 - 03:00 PM' },
@@ -52,26 +54,23 @@ export default function BookingPage() {
   }, [courtId]);
 
   useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     if (courtId && selectedDate) {
       fetchBookedAndBlockedSlots();
+      fetchHeatmap();
       setSelectedSlot(null);
     }
   }, [courtId, selectedDate, token, navigate]);
 
   const fetchCourtDetails = async () => {
+    if (!courtId) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`http://localhost:5000/api/courts/${courtId}`);
       const data = await res.json();
-      if (data.success) {
-        setCourt(data.data);
-      } else {
-        setError('Facility details not found.');
-      }
+      if (data.success) setCourt(data.data);
+      else setError('Facility details not found.');
     } catch (err) {
       setError('Could not connect to database.');
     } finally {
@@ -83,31 +82,50 @@ export default function BookingPage() {
     try {
       const res = await fetch(`http://localhost:5000/api/bookings/slots?courtId=${courtId}&date=${selectedDate}`);
       const data = await res.json();
-      if (data.success) {
-        setBookedSlots(data.bookedSlots);
-      }
+      if (data.success) setBookedSlots(data.bookedSlots);
+      else setBookedSlots([]);
     } catch (err) {
       console.error('Error fetching slots:', err);
+      setBookedSlots([]);
     }
   };
 
-  // Helper check status of a specific hourly slot
+  const fetchHeatmap = async () => {
+    if (!courtId || !selectedDate) return;
+    try {
+      setHeatmapLoading(true);
+      const res = await fetch(`http://localhost:5000/api/analytics/heatmap?courtId=${courtId}&date=${selectedDate}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success && data.heatmap?.[0]) {
+        const courtHeatmap = data.heatmap[0];
+        setHeatmap(courtHeatmap);
+        setQuietSlots(courtHeatmap.quietSlots || []);
+      } else {
+        setHeatmap(null);
+        setQuietSlots([]);
+      }
+    } catch (err) {
+      console.error('Error fetching heatmap:', err);
+      setHeatmap(null);
+      setQuietSlots([]);
+    } finally {
+      setHeatmapLoading(false);
+    }
+  };
+
   const getSlotStatus = (start, end) => {
     const parseTime = (t) => {
       const [h, m] = t.split(':').map(Number);
       return h * 60 + m;
     };
-    
     const sMinutes = parseTime(start);
     const eMinutes = parseTime(end);
-
     for (const bs of bookedSlots) {
       const bsStart = parseTime(bs.startTime);
       const bsEnd = parseTime(bs.endTime);
-      
-      if (sMinutes < bsEnd && bsStart < eMinutes) {
-        return bs.type === 'blocked' ? 'blocked' : 'booked';
-      }
+      if (sMinutes < bsEnd && bsStart < eMinutes) return bs.type === 'blocked' ? 'blocked' : 'booked';
     }
     return 'available';
   };
@@ -323,6 +341,190 @@ export default function BookingPage() {
                   );
                 })}
               </div>
+            </div>
+
+            <div className="heatmap">
+              <div className="heatmap-header">
+                <div className="heatmap-title">
+                  <Sparkles size={18} />
+                  <span>Demand Heatmap</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  {heatmapLoading && (
+                    <span className="heatmap-badge">
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-cyan)' }} />
+                      Analyzing
+                    </span>
+                  )}
+                  <span className="heatmap-badge">
+                    {heatmap?.analysisDate || selectedDate}
+                  </span>
+                </div>
+              </div>
+
+              {heatmap && heatmap.slots && (
+                <div style={{ padding: '0.85rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {(() => {
+                    const groups = [
+                      { label: 'Morning', hours: [6,7,8,9,10,11], icon: '🌅' },
+                      { label: 'Afternoon', hours: [12,13,14,15,16], icon: '☀️' },
+                      { label: 'Evening', hours: [17,18,19,20,21], icon: '🌆' },
+                    ];
+                    return groups.map((group) => {
+                      const groupSlots = heatmap.slots.filter((s) => group.hours.includes(s.hour));
+                      if (!groupSlots.length) return null;
+                      const groupMax = Math.max(...groupSlots.map((s) => s.demand || 0), 1);
+                      return (
+                        <div key={group.label}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                            <span>{group.icon}</span>
+                            <span style={{ fontWeight: 600 }}>{group.label}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>{group.hours[0]}:00 – {group.hours[group.hours.length - 1] + 1}:00</span>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            {groupSlots.map((slot) => {
+                              const width = Math.max(((slot.demand || 0) / groupMax) * 100, 8);
+                              const level = (slot.level || 'quiet').toLowerCase();
+                              const color =
+                                level === 'high'
+                                  ? 'rgba(248, 113, 113, 0.85)'
+                                  : level === 'moderate'
+                                  ? 'rgba(251, 191, 36, 0.95)'
+                                  : 'rgba(16, 185, 129, 0.85)';
+                              const bg =
+                                level === 'high'
+                                  ? 'rgba(248, 113, 113, 0.12)'
+                                  : level === 'moderate'
+                                  ? 'rgba(251, 191, 36, 0.12)'
+                                  : 'rgba(16, 185, 129, 0.12)';
+                              const tag =
+                                slot.belowAverage
+                                  ? 'Hidden gem'
+                                  : slot.anomaly
+                                  ? 'Anomaly'
+                                  : level === 'high'
+                                  ? 'Peak'
+                                  : level === 'moderate'
+                                  ? 'Busy'
+                                  : 'Quiet';
+                              return (
+                                <div
+                                  key={slot.hour}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    padding: '0.65rem 0.8rem',
+                                    borderRadius: '16px',
+                                    background: 'rgba(255, 255, 255, 0.02)',
+                                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                                  }}
+                                >
+                                  <div style={{ width: '96px', color: 'var(--text)', fontWeight: 600, fontSize: '0.88rem' }}>
+                                    {slot.start}
+                                  </div>
+                                  <div
+                                    style={{
+                                      flex: 1,
+                                      height: '10px',
+                                      borderRadius: '999px',
+                                      background: 'rgba(255, 255, 255, 0.06)',
+                                      overflow: 'hidden',
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: `${width}%`,
+                                        height: '100%',
+                                        borderRadius: '999px',
+                                        background: color,
+                                        transition: 'width 0.4s ease',
+                                      }}
+                                    />
+                                  </div>
+                                  <div
+                                    style={{
+                                      minWidth: '72px',
+                                      textAlign: 'right',
+                                      fontSize: '0.82rem',
+                                      color: 'var(--text-secondary)',
+                                    }}
+                                  >
+                                    {slot.demand > 0 ? `${slot.demand} booked` : 'Open'}
+                                  </div>
+                                  <span
+                                    style={{
+                                      fontSize: '0.72rem',
+                                      fontWeight: 600,
+                                      padding: '4px 10px',
+                                      borderRadius: '999px',
+                                      background: bg,
+                                      color,
+                                    }}
+                                  >
+                                    {tag}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              )}
+
+              {heatmap && (
+                <div className="heatmap-footer">
+                  <div className="heatmap-legend">
+                    <span style={{ color: 'var(--text-secondary)', fontWeight: 600, marginRight: '0.5rem' }}>Legend:</span>
+                    <span className="heatmap-legend-dot quiet" />
+                    <span>Quiet</span>
+                    <span className="heatmap-legend-dot moderate" />
+                    <span>Moderate</span>
+                    <span className="heatmap-legend-dot high" />
+                    <span>High</span>
+                  </div>
+
+                  {heatmap.insights && heatmap.insights.length > 0 && (
+                    <div className="heatmap-insights">
+                      {heatmap.insights.map((insight, idx) => (
+                        <div key={idx} className="heatmap-insight">
+                          <span style={{ color: 'var(--accent-cyan)' }}>•</span>
+                          <span>{insight}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {heatmap.bestQuietSlot && (
+                    <div className="heatmap-recommendation">
+                      <div>
+                        <strong>AI suggests: {heatmap.bestQuietSlot}</strong>
+                        <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>
+                          Least loaded window today
+                        </div>
+                      </div>
+                      <span className="heatmap-score-pill">
+                        Confidence: {heatmap.dataConfidence || 'Low'}
+                      </span>
+                    </div>
+                  )}
+
+                  {heatmap.peakSlots && heatmap.peakSlots.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                      <strong>Peak windows:</strong> {heatmap.peakSlots.join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!heatmapLoading && !heatmap && (
+                <div style={{ padding: '1.25rem', color: 'var(--text-muted)', fontSize: '0.88rem', textAlign: 'center' }}>
+                  No heatmap data available for this date yet.
+                </div>
+              )}
             </div>
 
             <div className="form-group">
