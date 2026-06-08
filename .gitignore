@@ -3,3 +3,6 @@ node_modules
 /frontend/.env
 .DS_Store
 dist
+.kilo/
+kilo.json
+AGENTS.md
