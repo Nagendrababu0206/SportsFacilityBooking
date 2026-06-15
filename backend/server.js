@@ -8,7 +8,6 @@
  * - Handles CORS so our React frontend can talk to us
  * - Integrated database (MongoDB Atlas + custom In-Memory Failover so our demo never crashes!)
  * - Asynchronous startup flow to avoid race conditions during seeding
- * - OAuth authentication with Google and GitHub
  */
 
 const express = require('express');
@@ -16,8 +15,6 @@ const cors = require('cors');
 const dns = require('dns');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
-
-const passport = require('./config/passport');
 
 // Optional DNS override for networks where default DNS blocks MongoDB SRV lookups.
 // Keep disabled unless your deployment environment specifically needs custom DNS servers.
@@ -37,14 +34,13 @@ const User = require('./models/User');
 const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim()) : true;
 const app = express();
 app.use(cors({ origin: corsOrigin, credentials: true }));
-app.use(express.json()); // Parses incoming json payloads so we can read req.body easily
-app.use(passport.initialize()); // Initialize passport for OAuth
+app.use(express.json());
 
 // Step 4: Hook up all our modular api routers
-app.use('/api/auth', require('./routes/auth'));           // Sign up & Login logic
-app.use('/api/courts', require('./routes/courts'));       // Fetch courts, block slots (Admin)
-app.use('/api/bookings', require('./routes/bookings'));   // Reservations & Simulated Refunds calculations
-app.use('/api/analytics', require('./routes/analytics')); // AI Peak predictions & graphs
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/courts', require('./routes/courts'));
+app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // Simple root checkpoint to ensure our server is up and running in our browser
 app.get('/', (req, res) => {

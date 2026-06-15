@@ -189,9 +189,9 @@ const MockUser = {
   findById: async (id) => db.users.find(u => u._id === id) || null,
   create: async (userData) => {
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = userData.password && userData.password !== 'oauth' 
-      ? await bcrypt.hash(userData.password, salt) 
-      : userData.password || 'oauth';
+    const hashedPassword = userData.password
+      ? await bcrypt.hash(userData.password, salt)
+      : '';
     const newUser = {
       _id: 'user_' + Math.random().toString(36).substr(2, 9),
       name: userData.name,
