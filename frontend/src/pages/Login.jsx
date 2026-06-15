@@ -12,10 +12,10 @@ export default function Login() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
+const { login, waitUntilLoaded } = useContext(AuthContext);
+   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
@@ -24,6 +24,7 @@ export default function Login() {
     const res = await login(normalizedEmail, password);
     
     if (res.success) {
+      await waitUntilLoaded();
       navigate('/home', { replace: true });
     } else {
       setError(res.message || 'Invalid credentials. Please check your email and password.');
