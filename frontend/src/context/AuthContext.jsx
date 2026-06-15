@@ -61,7 +61,6 @@ export const AuthProvider = ({ children }) => {
     const data = await authFetch('/api/auth/login', 'POST', { email, password });
     if (data.success) {
       setToken(data.token);
-      setUser(data.user);
       return { success: true };
     }
     return { success: false, message: data.message };
@@ -71,7 +70,6 @@ export const AuthProvider = ({ children }) => {
     const data = await authFetch('/api/auth/register', 'POST', { email, password });
     if (data.success) {
       setToken(data.token);
-      setUser(data.user);
       return { success: true };
     }
     return { success: false, message: data.message };
