@@ -8,6 +8,7 @@ import BookingPage from './pages/BookingPage';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import HandWritingDemo from './pages/HandWritingDemo';
 
 function RootRoute() {
   const { user, loading } = useContext(AuthContext);
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="/venues" element={<ProtectedRoute><Venues /></ProtectedRoute>} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/handwriting" element={<HandWritingDemo />} />
               <Route path="/booking/:courtId" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
