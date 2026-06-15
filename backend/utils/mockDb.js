@@ -7,7 +7,7 @@ const db = {
       _id: 'user123',
       name: 'Demo Student',
       email: 'student@demo.com',
-      password: '',
+      password: '$2a$10$x2dXXF251kgxsocMJyN4oe2E3LWPvsKPHhiAdDhX4NFeKoKlkVw2y',
       role: 'user',
       interests: ['Tennis', 'Basketball'],
       feedback: [],
@@ -17,7 +17,7 @@ const db = {
       _id: 'admin123',
       name: 'Demo Sports Admin',
       email: 'admin@demo.com',
-      password: '',
+      password: '$2a$10$x2dXXF251kgxsocMJyN4oe2E3LWPvsKPHhiAdDhX4NFeKoKlkVw2y',
       role: 'admin',
       interests: [],
       feedback: [],
@@ -171,15 +171,6 @@ const db = {
   cancellationLogs: [],
   usageStats: []
 };
-
-// Initialize hashes for demo users
-const initMockHashes = async () => {
-  const salt = await bcrypt.genSalt(10);
-  const hash = await bcrypt.hash('123456', salt);
-  db.users[0].password = hash;
-  db.users[1].password = hash;
-};
-initMockHashes();
 
 // Mock Models API Mocking Mongoose interfaces
 const MockUser = {
