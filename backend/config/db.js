@@ -28,7 +28,7 @@ const connectDB = async () => {
     mongoose.set('bufferCommands', false);
 
     // Use a configurable timeout so failed Atlas connections do not block startup for too long
-    const timeout = Number(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || 5000);
+    const timeout = Number(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || 10000);
 
     const conn = await mongoose.connect(
       mongoUri,
