@@ -61,22 +61,24 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     const data = await authFetch('/api/auth/login', 'POST', { email, password });
     if (data.success) {
+      localStorage.setItem('token', data.token);
       setToken(data.token);
-      return { success: true };
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
-    return { success: false, message: data.message };
+    return data;
   };
 
   const register = async (email, password) => {
     setLoading(true);
     const data = await authFetch('/api/auth/register', 'POST', { email, password });
     if (data.success) {
+      localStorage.setItem('token', data.token);
       setToken(data.token);
-      return { success: true };
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
-    return { success: false, message: data.message };
+    return data;
   };
 
   const logout = () => {
