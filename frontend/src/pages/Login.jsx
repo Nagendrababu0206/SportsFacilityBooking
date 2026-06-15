@@ -12,17 +12,16 @@ export default function Login() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   
-const { login, waitUntilLoaded } = useContext(AuthContext);
-   const navigate = useNavigate();
+  const { login, waitUntilLoaded } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-   const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
 
     const normalizedEmail = email.trim().toLowerCase();
     const res = await login(normalizedEmail, password);
-    
     if (res.success) {
       await waitUntilLoaded();
       navigate('/home', { replace: true });

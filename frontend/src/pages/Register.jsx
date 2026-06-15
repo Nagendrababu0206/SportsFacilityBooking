@@ -12,7 +12,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const { register } = useContext(AuthContext);
+  const { register, waitUntilLoaded } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -23,6 +23,7 @@ export default function Register() {
     const normalizedEmail = email.trim().toLowerCase();
     const res = await register(normalizedEmail, password);
     if (res.success) {
+      await waitUntilLoaded();
       navigate('/home', { replace: true });
     } else {
       setError(res.message || 'Registration failed. Please try again.');
