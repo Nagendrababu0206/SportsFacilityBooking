@@ -23,11 +23,12 @@ export default function Register() {
     setError('');
     setSubmitting(true);
 
-    const res = await register(email, password);
+    const normalizedEmail = email.trim().toLowerCase();
+    const res = await register(normalizedEmail, password);
     if (res.success) {
       navigate('/', { replace: true });
     } else {
-      setError(res.message || 'Registration failed.');
+      setError(res.message || 'Registration failed. Please try again.');
     }
     setSubmitting(false);
   };

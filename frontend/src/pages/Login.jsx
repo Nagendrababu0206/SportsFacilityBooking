@@ -29,7 +29,7 @@ export default function Login() {
     if (res.success) {
       navigate('/', { replace: true });
     } else {
-      setError(res.message || 'Invalid credentials.');
+      setError(res.message || 'Invalid credentials. Please check your email and password.');
     }
     setSubmitting(false);
   };
