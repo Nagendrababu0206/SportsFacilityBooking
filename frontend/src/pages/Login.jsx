@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Activity, AlertCircle } from 'lucide-react';
@@ -9,14 +9,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   
-  const { login, user, loading } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/', { replace: true });
-    }
-  }, [user, loading, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +21,7 @@ export default function Login() {
     const res = await login(normalizedEmail, password);
     
     if (res.success) {
-      navigate('/', { replace: true });
+      navigate('/home', { replace: true });
     } else {
       setError(res.message || 'Invalid credentials. Please check your email and password.');
     }
@@ -52,12 +46,7 @@ export default function Login() {
           </div>
         )}
 
-        {loading ? (
-          <div className="page-loader">
-            <div className="loader-ring"></div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <input
@@ -85,8 +74,7 @@ export default function Login() {
           <button type="submit" disabled={submitting} className="btn btn-primary">
             {submitting ? 'Signing In...' : 'Sign In'}
           </button>
-          </form>
-        )}
+        </form>
 
         <p className="auth-footnote">
           Don't have an account? <Link to="/register" className="link-highlight">Create Account</Link>
