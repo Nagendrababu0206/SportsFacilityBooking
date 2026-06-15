@@ -97,18 +97,13 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', protect, async (req, res) => {
   try {
-    const model = dbUser();
-    const user = await model.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
     res.status(200).json({
       success: true,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role
       }
     });
   } catch (error) {
