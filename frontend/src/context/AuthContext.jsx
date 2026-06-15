@@ -58,20 +58,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
+    setLoading(true);
     const data = await authFetch('/api/auth/login', 'POST', { email, password });
     if (data.success) {
       setToken(data.token);
       return { success: true };
     }
+    setLoading(false);
     return { success: false, message: data.message };
   };
 
   const register = async (email, password) => {
+    setLoading(true);
     const data = await authFetch('/api/auth/register', 'POST', { email, password });
     if (data.success) {
       setToken(data.token);
       return { success: true };
     }
+    setLoading(false);
     return { success: false, message: data.message };
   };
 
