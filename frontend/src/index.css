@@ -170,6 +170,51 @@ main {
   transform: none;
 }
 
+.btn-oauth {
+  width: 100%;
+  padding: 0.95rem 1.4rem;
+  border-radius: 18px;
+  font-weight: 600;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.btn-google {
+  background: #4285f4;
+  color: #fff;
+}
+
+.btn-github {
+  background: #333;
+  color: #fff;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1;
+}
+
+.divider span {
+  position: relative;
+  background: var(--bg-surface);
+  padding: 0 1rem;
+  z-index: 2;
+}
+
 .auth-page {
   min-height: calc(100vh - 88px);
   display: flex;

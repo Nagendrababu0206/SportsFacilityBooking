@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import { BarChart2, Calendar, Clock, DollarSign, Plus, RefreshCw, ShieldAlert, Sparkles } from 'lucide-react';
 
 export default function Dashboard() {
@@ -56,12 +57,12 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const resBookings = await fetch('http://localhost:5000/api/bookings', {
+      const resBookings = await fetch(`${API_BASE_URL}/api/bookings`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const dataBookings = await resBookings.json();
 
-      const resAnalytics = await fetch('http://localhost:5000/api/analytics/usage', {
+      const resAnalytics = await fetch(`${API_BASE_URL}/api/analytics/usage`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const dataAnalytics = await resAnalytics.json();
@@ -82,7 +83,7 @@ export default function Dashboard() {
 
   const fetchCourts = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/courts');
+      const res = await fetch(`${API_BASE_URL}/api/courts`);
       const data = await res.json();
       if (data.success) {
         setCourts(data.data);
@@ -105,7 +106,7 @@ export default function Dashboard() {
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${bookingId}/cancel`, {
+      const res = await fetch(`${API_BASE_URL}/api/bookings/${bookingId}/cancel`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -129,7 +130,7 @@ export default function Dashboard() {
     setError('');
 
     try {
-      const res = await fetch(`http://localhost:5000/api/courts/${blockCourtId}/block`, {
+      const res = await fetch(`${API_BASE_URL}/api/courts/${blockCourtId}/block`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

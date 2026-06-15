@@ -4,13 +4,13 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { MockUser } = require('../utils/mockDb');
 const { protect } = require('../middleware/auth');
+const passport = require('passport');
 
 // Helper to determine active DB
 const dbUser = () => process.env.MOCK_DB === 'true' ? MockUser : User;
 
 // Helper to generate and return token response
 const sendTokenResponse = (user, statusCode, res) => {
-  // Create token
   const token = jwt.sign(
     { id: user._id },
     process.env.JWT_SECRET || 'super_secret_sports_facility_booking_key_123!@#',
@@ -70,47 +70,36 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const model = dbUser();
 
-    // Validate email & password
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    console.log(`🔐 [LOGIN] Attempting login for email: ${normalizedEmail}`);
 
     let user;
     if (process.env.MOCK_DB === 'true') {
       user = await model.findOne({ email: normalizedEmail });
-      console.log(`🔐 [MOCK_DB] User found: ${user ? 'Yes' : 'No'}`);
     } else {
       user = await User.findOne({ email: normalizedEmail }).select('+password');
-      console.log(`🔐 [MongoDB] User found: ${user ? 'Yes' : 'No'}`);
     }
 
     if (!user) {
-      console.log(`❌ [LOGIN] User not found with email: ${normalizedEmail}`);
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
-    // Check if password matches
     let isMatch;
     if (process.env.MOCK_DB === 'true') {
       isMatch = await model.matchPassword(password, user.password);
-      console.log(`🔐 [MOCK_DB] Password match: ${isMatch}`);
     } else {
       isMatch = await user.matchPassword(password);
-      console.log(`🔐 [MongoDB] Password match: ${isMatch}`);
     }
 
     if (!isMatch) {
-      console.log(`❌ [LOGIN] Password mismatch for email: ${normalizedEmail}`);
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
-    console.log(`✅ [LOGIN] Successful login for email: ${normalizedEmail}`);
     sendTokenResponse(user, 200, res);
   } catch (error) {
-    console.error(`❌ [LOGIN ERROR]: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -138,5 +127,73 @@ router.get('/me', protect, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// Helper to generate and return token response for OAuth
+const sendOAuthTokenResponse = (user, res, redirectUrl) => {
+  const token = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET || 'super_secret_sports_facility_booking_key_123!@#',
+    { expiresIn: '30d' }
+  );
+
+  const userData = {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role
+  };
+
+  res.redirect(`${redirectUrl}?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`);
+};
+
+const oauthCallbackHandler = (req, res) => {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  if (!req.user) {
+    return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+  }
+  const redirectUrl = clientUrl;
+  const model = dbUser();
+  model.findOne({ email: req.user.email }).then(user => {
+    if (!user) {
+      return model.create({
+        name: req.user.name,
+        email: req.user.email,
+        password: 'oauth',
+        role: 'user'
+      }).then(newUser => {
+        sendOAuthTokenResponse(newUser, res, redirectUrl);
+      });
+    }
+    sendOAuthTokenResponse(user, res, redirectUrl);
+  }).catch(error => {
+    res.redirect(`${redirectUrl}/login?error=${encodeURIComponent(error.message)}`);
+  });
+};
+
+// @desc    Google OAuth
+// @route   GET /api/auth/google
+// @access  Public
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// @desc    Google OAuth callback
+// @route   GET /api/auth/google/callback
+// @access  Public
+router.get('/google/callback',
+  passport.authenticate('google', { failureRedirect: 'http://localhost:5173/login?error=oauth_failed', session: false }),
+  oauthCallbackHandler
+);
+
+// @desc    GitHub OAuth
+// @route   GET /api/auth/github
+// @access  Public
+router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+
+// @desc    GitHub OAuth callback
+// @route   GET /api/auth/github/callback
+// @access  Public
+router.get('/github/callback',
+  passport.authenticate('github', { failureRedirect: 'http://localhost:5173/login?error=oauth_failed', session: false }),
+  oauthCallbackHandler
+);
 
 module.exports = router;

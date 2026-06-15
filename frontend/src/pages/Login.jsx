@@ -1,22 +1,48 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useContext, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Activity, Mail, Lock, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '../config';
+import { Activity, AlertCircle, Globe, FolderGit2 } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(null);
   
-  const { login, user, loading } = useContext(AuthContext);
+  const { login, oauthLogin, user, loading } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const oauthProcessed = useRef(false);
 
   useEffect(() => {
     if (!loading && user) {
       navigate('/', { replace: true });
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (oauthProcessed.current) return;
+    
+    const urlParams = new URLSearchParams(location.search);
+    const token = urlParams.get('token');
+    const userData = urlParams.get('user');
+    const errorParam = urlParams.get('error');
+    
+    if (token && userData) {
+      oauthProcessed.current = true;
+      try {
+        const parsedUser = JSON.parse(decodeURIComponent(userData));
+        oauthLogin(token, parsedUser);
+        navigate('/', { replace: true });
+      } catch {
+        setTimeout(() => setError('OAuth login failed. Please try again.'), 0);
+      }
+    } else if (errorParam) {
+      setTimeout(() => setError(errorParam), 0);
+    }
+  }, [location.search, navigate, oauthLogin]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +60,16 @@ export default function Login() {
     setSubmitting(false);
   };
 
+  const handleGoogleLogin = () => {
+    setOauthLoading('google');
+    window.location.href = '${API_BASE_URL}/api/auth/google';
+  };
+
+  const handleGithubLogin = () => {
+    setOauthLoading('github');
+    window.location.href = '${API_BASE_URL}/api/auth/github';
+  };
+
   return (
     <div className="auth-page">
       <div className="glass-panel auth-card">
@@ -42,7 +78,7 @@ export default function Login() {
             <Activity size={38} className="gradient-text" />
           </div>
           <h2 className="auth-title">Welcome Back</h2>
-          <p className="auth-copy">Login to reserve your favorite sports courts. Use the demo credentials shown below to get started immediately.</p>
+          <p className="auth-copy">Login to reserve your favorite sports courts. Sign in with Google or GitHub for quick access.</p>
         </div>
 
         {error && (
@@ -51,6 +87,32 @@ export default function Login() {
             <span>{error}</span>
           </div>
         )}
+
+        <div className="oauth-buttons">
+          <button 
+            type="button" 
+            onClick={handleGoogleLogin} 
+            disabled={oauthLoading === 'google'}
+            className="btn btn-oauth btn-google"
+          >
+            <Globe size={20} />
+            {oauthLoading === 'google' ? 'Connecting...' : 'Sign in with Google'}
+          </button>
+          
+          <button 
+            type="button" 
+            onClick={handleGithubLogin} 
+            disabled={oauthLoading === 'github'}
+            className="btn btn-oauth btn-github"
+          >
+            <FolderGit2 size={20} />
+            {oauthLoading === 'github' ? 'Connecting...' : 'Sign in with GitHub'}
+          </button>
+        </div>
+
+        <div className="divider">
+          <span>or continue with email</span>
+        </div>
 
         {loading ? (
           <div className="page-loader">

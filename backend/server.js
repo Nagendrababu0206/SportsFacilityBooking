@@ -8,38 +8,37 @@
  * - Handles CORS so our React frontend can talk to us
  * - Integrated database (MongoDB Atlas + custom In-Memory Failover so our demo never crashes!)
  * - Asynchronous startup flow to avoid race conditions during seeding
+ * - OAuth authentication with Google and GitHub
  */
 
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const dns = require('dns');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-// 📡 Application-level DNS Override
-// Many school/university Wi-Fi networks block SRV lookups on default DNS.
-// We force Node.js to use Google (8.8.8.8) and Cloudflare (1.1.1.1) DNS to bypass the block!
-try {
-  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-} catch (err) {
-  console.log('⚠️ DNS Override failed:', err.message);
+const passport = require('./config/passport');
+
+// Optional DNS override for networks where default DNS blocks MongoDB SRV lookups.
+// Keep disabled unless your deployment environment specifically needs custom DNS servers.
+if (process.env.FORCE_DNS_SERVERS === 'true') {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+  } catch (err) {
+    console.log('⚠️ DNS Override failed:', err.message);
+  }
 }
 
 const connectDB = require('./config/db');
 const Court = require('./models/Court');
 const User = require('./models/User');
 
-// Step 1: Load up all our keys/ports from the .env file
-const envPath = path.join(__dirname, '.env');
-dotenv.config({ path: envPath });
-console.log(`🔐 Loaded environment variables from ${envPath}`);
-
-// Step 2: Initialize our Express Application instance
-const app = express();
-
 // Step 3: Add our standard middlewares
-app.use(cors()); // Permits requests from our Vite server on port 5173
+const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim()) : true;
+const app = express();
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json()); // Parses incoming json payloads so we can read req.body easily
+app.use(passport.initialize()); // Initialize passport for OAuth
 
 // Step 4: Hook up all our modular api routers
 app.use('/api/auth', require('./routes/auth'));           // Sign up & Login logic
@@ -153,9 +152,42 @@ const seedCourts = async () => {
       console.log('🎉 [Seeder] Sports facilities successfully imported to cloud!');
     }
 
-
   } catch (error) {
     console.error(`⚠️ [Seeder] Seed failed: ${error.message}`);
+  }
+};
+
+// Seed demo users
+const seedUsers = async () => {
+  // If we had to failover to the local mock database, we skip seeding
+  if (process.env.MOCK_DB === 'true') {
+    console.log('💡 [Seeder] Using mock users (in-memory fallback).');
+    return;
+  }
+
+  try {
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log('🌱 [Seeder] No users found. Creating demo accounts...');
+      
+      await User.create({
+        name: 'Demo Student',
+        email: 'student@demo.com',
+        password: '123456',
+        role: 'user'
+      });
+      await User.create({
+        name: 'Demo Sports Admin',
+        email: 'admin@demo.com',
+        password: '123456',
+        role: 'admin'
+      });
+      console.log('🎉 [Seeder] Demo users created successfully!');
+    } else {
+      console.log(`📊 [Seeder] ${userCount} user(s) already exist. Skipping user seed.`);
+    }
+  } catch (error) {
+    console.error(`⚠️ [Seeder] User seed failed: ${error.message}`);
   }
 };
 
@@ -173,6 +205,7 @@ const startServer = async () => {
   
   // Step 2: Seed courts and profiles
   await seedCourts();
+  await seedUsers();
 
   // Step 3: Start listening for incoming traffic on our designated port
   const PORT = process.env.PORT || 5000;

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CalendarPlus, MapPin, Navigation, ShieldCheck, Star } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 
 export default function Venues() {
   const { token } = useContext(AuthContext);
@@ -43,7 +44,7 @@ export default function Venues() {
 
   const fetchCourts = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/courts');
+      const res = await fetch(`${API_BASE_URL}/api/courts`);
       const data = await res.json();
       if (data.success) {
         console.log('🏟️  Courts fetched:', data.data.map(c => ({ name: c.name, hasLocation: !!c.location, location: c.location })));

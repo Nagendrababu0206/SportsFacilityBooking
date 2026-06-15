@@ -12,16 +12,26 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  if (process.env.MOCK_DB === 'true') {
+    console.log('💡 [DB] In-Memory Mock Database active. MongoDB connection skipped.');
+    return;
+  }
+
   try {
+    const mongoUri = process.env.MONGODB_URI;
+
+    if (!mongoUri) {
+      throw new Error('MONGODB_URI is not set. Set MOCK_DB=true to run with the local fallback datastore.');
+    }
+
     // Disable Mongoose command buffering so queries fail instantly if connection is offline
     mongoose.set('bufferCommands', false);
 
-    // Set a generous 10-second timeout for cloud database handshakes, or a fast 2-second timeout for local DBs
-    const isCloud = (process.env.MONGODB_URI || '').includes('mongodb.net');
-    const timeout = isCloud ? 10000 : 2000;
+    // Use a configurable timeout so failed Atlas connections do not block startup for too long
+    const timeout = Number(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || 5000);
 
     const conn = await mongoose.connect(
-      process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sports_facility_booking',
+      mongoUri,
       {
         serverSelectionTimeoutMS: timeout
       }

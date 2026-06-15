@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import { Activity, CalendarCheck, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function Home() {
@@ -17,7 +18,7 @@ export default function Home() {
   useEffect(() => {
     const fetchVenueCount = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/courts');
+        const res = await fetch(`${API_BASE_URL}/api/courts`);
         const data = await res.json();
         if (data.success) {
           setVenueCount(data.data.length);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import { ArrowLeft, Calendar, ShieldCheck, ShieldAlert, Sparkles, Receipt, Zap, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -67,7 +68,7 @@ export default function BookingPage() {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:5000/api/courts/${courtId}`);
+      const res = await fetch(`${API_BASE_URL}/api/courts/${courtId}`);
       const data = await res.json();
       if (data.success) setCourt(data.data);
       else setError('Facility details not found.');
@@ -80,7 +81,7 @@ export default function BookingPage() {
 
   const fetchBookedAndBlockedSlots = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/slots?courtId=${courtId}&date=${selectedDate}`);
+      const res = await fetch(`${API_BASE_URL}/api/bookings/slots?courtId=${courtId}&date=${selectedDate}`);
       const data = await res.json();
       if (data.success) setBookedSlots(data.bookedSlots);
       else setBookedSlots([]);
@@ -94,7 +95,7 @@ export default function BookingPage() {
     if (!courtId || !selectedDate) return;
     try {
       setHeatmapLoading(true);
-      const res = await fetch(`http://localhost:5000/api/analytics/heatmap?courtId=${courtId}&date=${selectedDate}`, {
+      const res = await fetch(`${API_BASE_URL}/api/analytics/heatmap?courtId=${courtId}&date=${selectedDate}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -155,7 +156,7 @@ export default function BookingPage() {
     setError('');
     
     try {
-      const res = await fetch('http://localhost:5000/api/bookings', {
+      const res = await fetch(`${API_BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

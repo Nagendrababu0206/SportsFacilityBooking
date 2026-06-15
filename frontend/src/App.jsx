@@ -20,7 +20,25 @@ function RootRoute() {
     );
   }
 
-  return user ? <Home /> : <Navigate to="/login" replace />;
+  return user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />;
+}
+
+function ProtectedRoute({ children }) {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return (
+      <div className="page-loader">
+        <div className="loader-ring"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }
 
 export default function App() {
@@ -32,12 +50,12 @@ export default function App() {
           <main>
             <Routes>
               <Route path="/" element={<RootRoute />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/venues" element={<Venues />} />
+              <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+              <Route path="/venues" element={<ProtectedRoute><Venues /></ProtectedRoute>} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/booking/:courtId" element={<BookingPage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/booking/:courtId" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

@@ -114,7 +114,58 @@ const db = {
       createdAt: new Date()
     }
   ],
-  bookings: []
+  bookings: [],
+  facilities: [
+    {
+      _id: 'fac1',
+      name: "Grand Slam Arena (Indoor)",
+      sport: "Tennis",
+      description: "Premium synthetic tennis court with advanced indoor temperature regulation, crystal-clear lighting, and professional ball machines.",
+      pricePerHour: 450,
+      capacity: 4,
+      location: {
+        lat: 37.4275,
+        lng: -122.1697,
+        address: "1 Tennis Ave, Campus City"
+      },
+      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
+      rules: [
+        "Non-marking tennis shoes required at all times.",
+        "Maximum 4 players on the court per session.",
+        "Please bring your own tennis rackets and balls.",
+        "Please leave the court 5 minutes early to allow for surface prep."
+      ],
+      blockedSlots: [],
+      isActive: true,
+      createdAt: new Date()
+    },
+    {
+      _id: 'fac2',
+      name: "Apex Hoop Center",
+      sport: "Basketball",
+      description: "Vibrant indoor court with premium maple wood flooring, adjustable hoops, electronic scoreboards, and full surround-sound audio.",
+      pricePerHour: 420,
+      capacity: 10,
+      location: {
+        lat: 37.4260,
+        lng: -122.1710,
+        address: "22 Champion Way, Campus City"
+      },
+      imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80&w=800",
+      rules: [
+        "Proper indoor basketball shoes are required.",
+        "Maximum capacity is 10 players on the court.",
+        "Hanging on rims or nets is strictly prohibited.",
+        "No food or colored sugary beverages allowed on the hardwood flooring."
+      ],
+      blockedSlots: [],
+      isActive: true,
+      createdAt: new Date()
+    }
+  ],
+  timeSlots: [],
+  cancellationLogs: [],
+  usageStats: []
 };
 
 // Initialize hashes for demo users
@@ -138,7 +189,9 @@ const MockUser = {
   findById: async (id) => db.users.find(u => u._id === id) || null,
   create: async (userData) => {
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(userData.password, salt);
+    const hashedPassword = userData.password && userData.password !== 'oauth' 
+      ? await bcrypt.hash(userData.password, salt) 
+      : userData.password || 'oauth';
     const newUser = {
       _id: 'user_' + Math.random().toString(36).substr(2, 9),
       name: userData.name,
@@ -218,10 +271,12 @@ const MockBooking = {
     // Simulate population
     return list.map(b => {
       const court = db.courts.find(c => c._id === b.court) || null;
+      const facility = db.facilities.find(f => f._id === b.facility) || null;
       const user = db.users.find(u => u._id === b.user) || null;
       return {
         ...b,
         court,
+        facility,
         user: user ? { _id: user._id, name: user.name, email: user.email } : null
       };
     });
@@ -230,10 +285,12 @@ const MockBooking = {
     const b = db.bookings.find(x => x._id === id);
     if (!b) return null;
     const court = db.courts.find(c => c._id === b.court) || null;
+    const facility = db.facilities.find(f => f._id === b.facility) || null;
     const user = db.users.find(u => u._id === b.user) || null;
     return {
       ...b,
       court,
+      facility,
       user,
       save: async function() {
         const idx = db.bookings.findIndex(x => x._id === this._id);
@@ -242,6 +299,7 @@ const MockBooking = {
             _id: this._id,
             user: this.user._id || this.user,
             court: this.court._id || this.court,
+            facility: this.facility._id || this.facility,
             date: this.date,
             startTime: this.startTime,
             endTime: this.endTime,
@@ -274,4 +332,138 @@ const MockBooking = {
   }
 };
 
-module.exports = { MockUser, MockCourt, MockBooking };
+const MockFacility = {
+  find: async () => db.facilities.filter(f => f.isActive),
+  findById: async (id) => db.facilities.find(f => f._id === id) || null,
+  create: async (facilityData) => {
+    const newFacility = {
+      _id: 'fac_' + Math.random().toString(36).substr(2, 9),
+      ...facilityData,
+      blockedSlots: [],
+      isActive: true,
+      createdAt: new Date()
+    };
+    db.facilities.push(newFacility);
+    return newFacility;
+  },
+  findByIdAndUpdate: async (id, updateData) => {
+    const idx = db.facilities.findIndex(f => f._id === id);
+    if (idx === -1) return null;
+    db.facilities[idx] = { ...db.facilities[idx], ...updateData };
+    return db.facilities[idx];
+  },
+  findByIdAndDelete: async (id) => {
+    const idx = db.facilities.findIndex(f => f._id === id);
+    if (idx === -1) return null;
+    const deleted = db.facilities[idx];
+    db.facilities.splice(idx, 1);
+    return deleted;
+  },
+  addBlockedSlot: async (facilityId, slotData) => {
+    const facility = db.facilities.find(f => f._id === facilityId);
+    if (!facility) return null;
+    const newBlock = {
+      _id: 'block_' + Math.random().toString(36).substr(2, 9),
+      ...slotData
+    };
+    facility.blockedSlots.push(newBlock);
+    return facility;
+  },
+  removeBlockedSlot: async (facilityId, blockId) => {
+    const facility = db.facilities.find(f => f._id === facilityId);
+    if (!facility) return null;
+    facility.blockedSlots = facility.blockedSlots.filter(s => s._id !== blockId);
+    return facility;
+  }
+};
+
+const MockTimeSlot = {
+  find: async (filter = {}) => {
+    let list = [...db.timeSlots];
+    if (filter.facility) {
+      list = list.filter(ts => ts.facility === filter.facility);
+    }
+    if (filter.date) {
+      list = list.filter(ts => ts.date === filter.date);
+    }
+    if (filter.isAvailable !== undefined) {
+      list = list.filter(ts => ts.isAvailable === filter.isAvailable);
+    }
+    return list;
+  },
+  findById: async (id) => db.timeSlots.find(ts => ts._id === id) || null,
+  create: async (slotData) => {
+    const newSlot = {
+      _id: 'slot_' + Math.random().toString(36).substr(2, 9),
+      ...slotData,
+      isAvailable: true,
+      isBlocked: false,
+      createdAt: new Date()
+    };
+    db.timeSlots.push(newSlot);
+    return newSlot;
+  },
+  findByIdAndUpdate: async (id, updateData) => {
+    const idx = db.timeSlots.findIndex(ts => ts._id === id);
+    if (idx === -1) return null;
+    db.timeSlots[idx] = { ...db.timeSlots[idx], ...updateData };
+    return db.timeSlots[idx];
+  }
+};
+
+const MockCancellationLog = {
+  find: async (filter = {}) => {
+    let list = [...db.cancellationLogs];
+    if (filter.user) {
+      list = list.filter(cl => cl.user === filter.user || cl.user.toString() === filter.user.toString());
+    }
+    if (filter.booking) {
+      list = list.filter(cl => cl.booking === filter.booking || cl.booking.toString() === filter.booking.toString());
+    }
+    return list;
+  },
+  findById: async (id) => db.cancellationLogs.find(cl => cl._id === id) || null,
+  create: async (logData) => {
+    const newLog = {
+      _id: 'cancl_' + Math.random().toString(36).substr(2, 9),
+      ...logData,
+      cancelledAt: new Date()
+    };
+    db.cancellationLogs.push(newLog);
+    return newLog;
+  }
+};
+
+const MockUsageStats = {
+  find: async (filter = {}) => {
+    let list = [...db.usageStats];
+    if (filter.facility) {
+      list = list.filter(us => us.facility === filter.facility || us.facility.toString() === filter.facility.toString());
+    }
+    if (filter.date) {
+      list = list.filter(us => us.date === filter.date);
+    }
+    return list;
+  },
+  findById: async (id) => db.usageStats.find(us => us._id === id) || null,
+  create: async (statsData) => {
+    const newStats = {
+      _id: 'stats_' + Math.random().toString(36).substr(2, 9),
+      ...statsData,
+      totalBookings: 0,
+      totalHours: 0,
+      totalRevenue: 0,
+      createdAt: new Date()
+    };
+    db.usageStats.push(newStats);
+    return newStats;
+  },
+  findByIdAndUpdate: async (id, updateData) => {
+    const idx = db.usageStats.findIndex(us => us._id === id);
+    if (idx === -1) return null;
+    db.usageStats[idx] = { ...db.usageStats[idx], ...updateData };
+    return db.usageStats[idx];
+  }
+};
+
+module.exports = { MockUser, MockCourt, MockBooking, MockFacility, MockTimeSlot, MockCancellationLog, MockUsageStats };
