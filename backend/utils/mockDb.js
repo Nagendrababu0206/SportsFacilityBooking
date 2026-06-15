@@ -7,16 +7,20 @@ const db = {
       _id: 'user123',
       name: 'Demo Student',
       email: 'student@demo.com',
-      password: '', // hashed below
+      password: '',
       role: 'user',
+      interests: ['Tennis', 'Basketball'],
+      feedback: [],
       createdAt: new Date()
     },
     {
       _id: 'admin123',
       name: 'Demo Sports Admin',
       email: 'admin@demo.com',
-      password: '', // hashed below
+      password: '',
       role: 'admin',
+      interests: [],
+      feedback: [],
       createdAt: new Date()
     }
   ],
@@ -203,6 +207,8 @@ const MockUser = {
       email: userData.email,
       password: hashedPassword,
       role: userData.role || 'user',
+      interests: userData.interests || [],
+      feedback: [],
       createdAt: new Date()
     };
     db.users.push(newUser);

@@ -41,6 +41,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/courts', require('./routes/courts'));
 app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Simple root checkpoint to ensure our server is up and running in our browser
 app.get('/', (req, res) => {
