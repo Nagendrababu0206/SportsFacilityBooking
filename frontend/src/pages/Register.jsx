@@ -1,22 +1,19 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Activity, AlertCircle } from 'lucide-react';
 
+/**
+ * Register page component for new user accounts.
+ */
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const { register, user, loading } = useContext(AuthContext);
+  const { register } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/', { replace: true });
-    }
-  }, [user, loading, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +23,7 @@ export default function Register() {
     const normalizedEmail = email.trim().toLowerCase();
     const res = await register(normalizedEmail, password);
     if (res.success) {
-      navigate('/', { replace: true });
+      navigate('/home', { replace: true });
     } else {
       setError(res.message || 'Registration failed. Please try again.');
     }
@@ -51,47 +48,39 @@ export default function Register() {
           </div>
         )}
 
-        {loading ? (
-          <div className="page-loader">
-            <div className="loader-ring"></div>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
+            <input
+              type="email"
+              className="form-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="alex@demo.com"
+              required
+            />
           </div>
-        ) : (
-          <>
-            <form onSubmit={handleSubmit} className="auth-form">
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="alex@demo.com"
-                  required
-                />
-              </div>
 
-              <div className="form-group">
-                <label className="form-label">Password</label>
-                <input
-                  type="password"
-                  className="form-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 6 characters"
-                  required
-                />
-              </div>
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input
+              type="password"
+              className="form-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Min. 6 characters"
+              required
+            />
+          </div>
 
-              <button type="submit" disabled={submitting} className="btn btn-primary">
-                {submitting ? 'Creating Profile...' : 'Complete Sign Up'}
-              </button>
-            </form>
+          <button type="submit" disabled={submitting} className="btn btn-primary">
+            {submitting ? 'Creating Profile...' : 'Complete Sign Up'}
+          </button>
+        </form>
 
-            <p className="auth-footnote">
-              Already have an account? <Link to="/login" className="link-highlight">Login</Link>
-            </p>
-          </>
-        )}
+        <p className="auth-footnote">
+          Already have an account? <Link to="/login" className="link-highlight">Login</Link>
+        </p>
       </div>
     </div>
   );

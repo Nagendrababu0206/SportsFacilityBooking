@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Activity, AlertCircle } from 'lucide-react';
 
+/**
+ * Login page component for user authentication.
+ */
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

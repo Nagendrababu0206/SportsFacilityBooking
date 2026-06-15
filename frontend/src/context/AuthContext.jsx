@@ -3,6 +3,9 @@ import { API_BASE_URL } from '../config';
 
 export const AuthContext = createContext();
 
+/**
+ * AuthProvider handles user authentication state and API calls.
+ */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -22,9 +25,7 @@ export const AuthProvider = ({ children }) => {
   const fetchCurrentUser = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (data.success) {
@@ -39,46 +40,41 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  /**
+   * Makes authenticated API call to the provided endpoint.
+   */
+  const authFetch = async (endpoint, method, body) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: body ? JSON.stringify(body) : undefined
       });
       const data = await res.json();
-      
-      if (data.success) {
-        setToken(data.token);
-        setUser(data.user);
-        return { success: true };
-      } else {
-        return { success: false, message: data.message };
-      }
+      return data;
     } catch (err) {
       return { success: false, message: 'Server connection failed.' };
     }
   };
 
-  const register = async (email, password) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        setToken(data.token);
-        setUser(data.user);
-        return { success: true };
-      } else {
-        return { success: false, message: data.message };
-      }
-    } catch (err) {
-      return { success: false, message: 'Server connection failed.' };
+  const login = async (email, password) => {
+    const data = await authFetch('/api/auth/login', 'POST', { email, password });
+    if (data.success) {
+      setToken(data.token);
+      setUser(data.user);
+      return { success: true };
     }
+    return { success: false, message: data.message };
+  };
+
+  const register = async (email, password) => {
+    const data = await authFetch('/api/auth/register', 'POST', { email, password });
+    if (data.success) {
+      setToken(data.token);
+      setUser(data.user);
+      return { success: true };
+    }
+    return { success: false, message: data.message };
   };
 
   const logout = () => {
