@@ -182,11 +182,16 @@ const MockUser = {
   find: async () => db.users,
   findOne: async (query) => {
     if (query.email) {
-      return db.users.find(u => u.email.toLowerCase() === query.email.toLowerCase()) || null;
+      const found = db.users.find(u => u.email.toLowerCase() === query.email.toLowerCase());
+      if (!found) return null;
+      return { ...found };
     }
     return null;
   },
-  findById: async (id) => db.users.find(u => u._id === id) || null,
+  findById: async (id) => {
+    const found = db.users.find(u => u._id === id);
+    return found ? { ...found } : null;
+  },
   create: async (userData) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = userData.password
@@ -201,9 +206,10 @@ const MockUser = {
       createdAt: new Date()
     };
     db.users.push(newUser);
-    return newUser;
+    return { ...newUser };
   },
   matchPassword: async (enteredPassword, hashedPassword) => {
+    if (!hashedPassword) return false;
     return await bcrypt.compare(enteredPassword, hashedPassword);
   }
 };
