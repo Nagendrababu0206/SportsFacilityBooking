@@ -60,6 +60,7 @@ export default function Venues() {
   };
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    if (lat1 === 0 || lon1 === 0 || lat2 === 0 || lon2 === 0) return null;
     if (!lat1 || !lon1 || !lat2 || !lon2) return null;
     const earthRadius = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -76,16 +77,18 @@ export default function Venues() {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
   };
 
-  const sortedCourts = useMemo(() => {
+const sortedCourts = useMemo(() => {
     const mapped = courts
       .map((court) => {
         if (userLocation && court.location?.lat && court.location?.lng) {
           const dist = calculateDistance(userLocation.lat, userLocation.lng, court.location.lat, court.location.lng);
-          console.log(`📍 ${court.name}: ${dist.toFixed(1)} km`);
-          return {
-            ...court,
-            distance: dist
-          };
+          if (dist !== null) {
+            console.log(`📍 ${court.name}: ${dist.toFixed(1)} km`);
+            return {
+              ...court,
+              distance: dist
+            };
+          }
         }
         return court;
       })
@@ -95,7 +98,7 @@ export default function Venues() {
         }
         return a.name.localeCompare(b.name);
       });
-    
+     
     console.log('📊 Courts sorted by distance:', mapped.map(c => ({ name: c.name, distance: c.distance })));
     return mapped;
   }, [courts, userLocation]);
