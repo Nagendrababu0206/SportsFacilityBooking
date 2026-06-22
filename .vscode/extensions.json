@@ -1,6 +1,8 @@
 {
     "recommendations": [
+        "saoudrizwan.claude-dev",
+        "rooveterinaryinc.roo-cline",
         "apoqgin.agent-snitch",
-        "saoudrizwan.claude-dev"
+        "openai.chatgpt"
     ]
 }

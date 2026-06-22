@@ -19,7 +19,7 @@ export default function Register() {
     const res = await register(email.trim().toLowerCase(), password);
     if (res.success) {
       await waitUntilLoaded();
-      navigate('/home', { replace: true });
+      navigate('/', { replace: true });
     } else {
       setError(res.message || 'Registration failed');
       setSubmitting(false);

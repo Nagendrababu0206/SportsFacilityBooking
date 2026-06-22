@@ -25,7 +25,7 @@ export default function Login() {
         return;
       }
       await waitUntilLoaded();
-      navigate('/home', { replace: true });
+      navigate('/', { replace: true });
     } else {
       setError(res.message || 'Invalid credentials');
       setSubmitting(false);

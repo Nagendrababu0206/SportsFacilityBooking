@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   const fetchUser = async () => {
     try {
@@ -36,6 +36,7 @@ export function AuthProvider({ children }) {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: body ? JSON.stringify(body) : undefined
       });
       return await res.json();
