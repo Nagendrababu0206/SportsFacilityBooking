@@ -1,7 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+const fs = require('fs');
+
+// Only load .env if the file exists (Render uses environment variables directly)
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  require('dotenv').config({ path: envPath });
+}
 
 const connectDB = require('./config/db');
 const app = express();
@@ -20,20 +26,17 @@ app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/admin', require('./routes/admin'));
 
 app.get('/', (req, res) => res.json({ message: 'Sports Facility Booking API' }));
+app.get('/health', (req, res) => res.json({ status: 'ok', mock: !!process.env.MOCK_DB }));
+
+const PORT = parseInt(process.env.PORT, 10) || 10000;
 
 const start = async () => {
-  await connectDB();
-  const PORT = parseInt(process.env.PORT, 10) || 5000;
-
-  const onError = (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`Port ${PORT} in use, trying ${PORT + 1}...`);
-      app.listen(PORT + 1, () => console.log(`Server running on port ${PORT + 1}`));
-    } else {
-      console.error(err);
-    }
-  };
-
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`)).on('error', onError);
+  try {
+    await connectDB();
+    console.log('MOCK_DB:', process.env.MOCK_DB || 'true');
+  } catch (err) {
+    console.log('DB error, starting without DB:', err.message);
+  }
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 };
 start();
