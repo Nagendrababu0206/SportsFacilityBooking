@@ -1,472 +1,59 @@
 const bcrypt = require('bcryptjs');
 
-// In-Memory Storage
 const db = {
   users: [
     {
       _id: 'user123',
-      name: 'Demo Student',
-      email: 'student@demo.com',
+      name: 'Demo Student', email: 'student@demo.com',
       password: '$2a$10$x2dXXF251kgxsocMJyN4oe2E3LWPvsKPHhiAdDhX4NFeKoKlkVw2y',
-      role: 'user',
-      interests: ['Tennis', 'Basketball'],
-      feedback: [],
-      createdAt: new Date()
+      role: 'user', interests: ['Tennis', 'Basketball'], feedback: [], createdAt: new Date()
     },
     {
-      _id: 'admin123',
-      name: 'Demo Sports Admin',
-      email: 'admin@demo.com',
+      _id: 'admin123', name: 'Demo Sports Admin', email: 'admin@demo.com',
       password: '$2a$10$x2dXXF251kgxsocMJyN4oe2E3LWPvsKPHhiAdDhX4NFeKoKlkVw2y',
-      role: 'admin',
-      interests: [],
-      feedback: [],
-      createdAt: new Date()
+      role: 'admin', interests: [], feedback: [], createdAt: new Date()
     }
   ],
   courts: [
-    {
-      _id: 'court1',
-      name: "Grand Slam Arena (Indoor)",
-      sport: "Tennis",
-      description: "Premium synthetic tennis court with advanced indoor temperature regulation, crystal-clear lighting, and professional ball machines.",
-      pricePerHour: 450,
-      capacity: 4,
-      location: {
-        lat: 37.4275,
-        lng: -122.1697,
-        address: "1 Tennis Ave, Campus City"
-      },
-      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
-      rules: [
-        "Non-marking tennis shoes required at all times.",
-        "Maximum 4 players on the court per session.",
-        "Please bring your own tennis rackets and balls.",
-        "Please leave the court 5 minutes early to allow for surface prep."
-      ],
-      blockedSlots: [],
-      isActive: true,
-      createdAt: new Date()
-    },
-    {
-      _id: 'court2',
-      name: "Apex Hoop Center",
-      sport: "Basketball",
-      description: "Vibrant indoor court with premium maple wood flooring, adjustable hoops, electronic scoreboards, and full surround-sound audio.",
-      pricePerHour: 420,
-      capacity: 10,
-      location: {
-        lat: 37.4260,
-        lng: -122.1710,
-        address: "22 Champion Way, Campus City"
-      },
-      imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80&w=800",
-      rules: [
-        "Proper indoor basketball shoes are required.",
-        "Maximum capacity is 10 players on the court.",
-        "Hanging on rims or nets is strictly prohibited.",
-        "No food or colored sugary beverages allowed on the hardwood flooring."
-      ],
-      blockedSlots: [],
-      isActive: true,
-      createdAt: new Date()
-    },
-    {
-      _id: 'court3',
-      name: "Smash Arena Court A",
-      sport: "Badminton",
-      description: "Ultra-cushioned court mats with dedicated high-performance glare-free LED lighting to track your shuttles perfectly.",
-      pricePerHour: 220,
-      capacity: 4,
-      location: {
-        lat: 37.4286,
-        lng: -122.1694,
-        address: "8 Shuttle Drive, Campus City"
-      },
-      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
-      rules: [
-        "Badminton non-marking shoes are compulsory.",
-        "Maximum 4 players allowed per court.",
-        "Shuttlecocks and rental rackets are available at the front desk.",
-        "Keep court borders clear of bags and personal items."
-      ],
-      blockedSlots: [],
-      isActive: true,
-      createdAt: new Date()
-    },
-    {
-      _id: 'court4',
-      name: "Bernabéu Astro Turf",
-      sport: "Football",
-      description: "Elite outdoor 5-a-side AstroTurf football pitch equipped with stadium-grade floodlights, premium netting, and rebound walls.",
-      pricePerHour: 620,
-      capacity: 12,
-      location: {
-        lat: 37.4252,
-        lng: -122.1708,
-        address: "46 Turf Lane, Campus City"
-      },
-      imageUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800",
-      rules: [
-        "Astroturf or flat-soled football shoes only (No metal cleats allowed).",
-        "Maximum of 12 players per pitch.",
-        "Shin guards are highly recommended.",
-        "Climbing boundary nets is strictly prohibited."
-      ],
-      blockedSlots: [],
-      isActive: true,
-      createdAt: new Date()
-    }
+    { _id: 'court1', name: "Grand Slam Arena (Indoor)", sport: "Tennis", description: "Premium synthetic tennis court with indoor regulation and professional ball machines.", pricePerHour: 40, capacity: 4, location: { lat: 37.4275, lng: -122.1697, address: "1 Tennis Ave, Campus City" }, imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800", rules: ["Non-marking tennis shoes required.", "Maximum 4 players per session.", "Bring your own rackets and balls.", "Leave 5 min early for surface prep."], blockedSlots: [], isActive: true, createdAt: new Date() },
+    { _id: 'court2', name: "Apex Hoop Center", sport: "Basketball", description: "Indoor court with maple wood flooring, adjustable hoops, and electronic scoreboards.", pricePerHour: 60, capacity: 10, location: { lat: 37.426, lng: -122.171, address: "22 Champion Way, Campus City" }, imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80&w=800", rules: ["Indoor basketball shoes required.", "Max 10 players.", "No hanging on rims.", "No food on hardwood."], blockedSlots: [], isActive: true, createdAt: new Date() },
+    { _id: 'court3', name: "Smash Arena Court A", sport: "Badminton", description: "Cushioned mats with glare-free LED lighting for shuttle tracking.", pricePerHour: 25, capacity: 4, location: { lat: 37.4286, lng: -122.1694, address: "8 Shuttle Drive, Campus City" }, imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800", rules: ["Non-marking shoes compulsory.", "Max 4 players per court.", "Shuttlecocks available at front desk.", "Keep bags off court."], blockedSlots: [], isActive: true, createdAt: new Date() },
+    { _id: 'court4', name: "Bernabéu Astro Turf", sport: "Football", description: "Outdoor 5-a-side AstroTurf pitch with floodlights and rebound walls.", pricePerHour: 80, capacity: 12, location: { lat: 37.4252, lng: -122.1708, address: "46 Turf Lane, Campus City" }, imageUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800", rules: ["Astroturf shoes only, no metal cleats.", "Max 12 players.", "Shin guards recommended.", "No climbing nets."], blockedSlots: [], isActive: true, createdAt: new Date() }
   ],
   bookings: [],
-  facilities: [
-    {
-      _id: 'fac1',
-      name: "Grand Slam Arena (Indoor)",
-      sport: "Tennis",
-      description: "Premium synthetic tennis court with advanced indoor temperature regulation, crystal-clear lighting, and professional ball machines.",
-      pricePerHour: 450,
-      capacity: 4,
-      location: {
-        lat: 37.4275,
-        lng: -122.1697,
-        address: "1 Tennis Ave, Campus City"
-      },
-      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
-      rules: [
-        "Non-marking tennis shoes required at all times.",
-        "Maximum 4 players on the court per session.",
-        "Please bring your own tennis rackets and balls.",
-        "Please leave the court 5 minutes early to allow for surface prep."
-      ],
-      blockedSlots: [],
-      isActive: true,
-      createdAt: new Date()
-    },
-    {
-      _id: 'fac2',
-      name: "Apex Hoop Center",
-      sport: "Basketball",
-      description: "Vibrant indoor court with premium maple wood flooring, adjustable hoops, electronic scoreboards, and full surround-sound audio.",
-      pricePerHour: 420,
-      capacity: 10,
-      location: {
-        lat: 37.4260,
-        lng: -122.1710,
-        address: "22 Champion Way, Campus City"
-      },
-      imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80&w=800",
-      rules: [
-        "Proper indoor basketball shoes are required.",
-        "Maximum capacity is 10 players on the court.",
-        "Hanging on rims or nets is strictly prohibited.",
-        "No food or colored sugary beverages allowed on the hardwood flooring."
-      ],
-      blockedSlots: [],
-      isActive: true,
-      createdAt: new Date()
-    }
-  ],
+  facilities: [],
   timeSlots: [],
   cancellationLogs: [],
   usageStats: []
 };
 
-// Mock Models API Mocking Mongoose interfaces
 const MockUser = {
-  find: async () => db.users,
-  findOne: async (query) => {
-    if (query.email) {
-      const found = db.users.find(u => u.email.toLowerCase() === query.email.toLowerCase());
-      if (!found) return null;
-      return { ...found };
-    }
-    return null;
-  },
-  findById: async (id) => {
-    const found = db.users.find(u => u._id === id);
-    return found ? { ...found } : null;
-  },
-  create: async (userData) => {
+  find: async () => db.users.map(u => ({ _id: u._id, name: u.name, email: u.email, role: u.role, interests: u.interests, feedback: u.feedback, createdAt: u.createdAt })),
+  findOne: async (q) => { const u = db.users.find(u => u.email.toLowerCase() === (q.email || '').toLowerCase()); return u ? { ...u } : null; },
+  findById: async (id) => { const u = db.users.find(u => u._id === id); return u ? { ...u } : null; },
+  create: async (d) => {
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = userData.password
-      ? await bcrypt.hash(userData.password, salt)
-      : '';
-    const newUser = {
-      _id: 'user_' + Math.random().toString(36).substr(2, 9),
-      name: userData.name,
-      email: userData.email,
-      password: hashedPassword,
-      role: userData.role || 'user',
-      interests: userData.interests || [],
-      feedback: [],
-      createdAt: new Date()
-    };
-    db.users.push(newUser);
-    return { ...newUser };
+    const u = { _id: 'user_' + Math.random().toString(36).slice(2, 11), name: d.name, email: d.email, password: await bcrypt.hash(d.password, salt), role: d.role || 'user', interests: [], feedback: [], createdAt: new Date() };
+    db.users.push(u);
+    return { _id: u._id, name: u.name, email: u.email, role: u.role, interests: u.interests, feedback: u.feedback, createdAt: u.createdAt };
   },
-  matchPassword: async (enteredPassword, hashedPassword) => {
-    if (!hashedPassword) return false;
-    return await bcrypt.compare(enteredPassword, hashedPassword);
-  }
+  matchPassword: async (pw, hash) => bcrypt.compare(pw, hash)
 };
 
 const MockCourt = {
-  find: async () => db.courts.filter(c => c.isActive),
+  find: async (f) => (f?.isActive !== undefined ? db.courts.filter(c => c.isActive) : db.courts),
   findById: async (id) => db.courts.find(c => c._id === id) || null,
-  create: async (courtData) => {
-    const newCourt = {
-      _id: 'court_' + Math.random().toString(36).substr(2, 9),
-      ...courtData,
-      blockedSlots: [],
-      isActive: true,
-      createdAt: new Date()
-    };
-    db.courts.push(newCourt);
-    return newCourt;
-  },
-  findByIdAndUpdate: async (id, updateData) => {
-    const idx = db.courts.findIndex(c => c._id === id);
-    if (idx === -1) return null;
-    db.courts[idx] = { ...db.courts[idx], ...updateData };
-    return db.courts[idx];
-  },
-  findByIdAndDelete: async (id) => {
-    const idx = db.courts.findIndex(c => c._id === id);
-    if (idx === -1) return null;
-    const deleted = db.courts[idx];
-    db.courts.splice(idx, 1);
-    return deleted;
-  },
-  // Custom blocked slots operations helper
-  addBlockedSlot: async (courtId, slotData) => {
-    const court = db.courts.find(c => c._id === courtId);
-    if (!court) return null;
-    const newBlock = {
-      _id: 'block_' + Math.random().toString(36).substr(2, 9),
-      ...slotData
-    };
-    court.blockedSlots.push(newBlock);
-    return court;
-  },
-  removeBlockedSlot: async (courtId, blockId) => {
-    const court = db.courts.find(c => c._id === courtId);
-    if (!court) return null;
-    court.blockedSlots = court.blockedSlots.filter(s => s._id !== blockId);
-    return court;
-  }
+  create: async (d) => { const c = { _id: 'court_' + Math.random().toString(36).slice(2, 11), ...d, blockedSlots: [], isActive: true, createdAt: new Date() }; db.courts.push(c); return c; },
+  findByIdAndUpdate: async (id, u) => { const i = db.courts.findIndex(c => c._id === id); if (i === -1) return null; db.courts[i] = { ...db.courts[i], ...u }; return db.courts[i]; },
+  findByIdAndDelete: async (id) => { const i = db.courts.findIndex(c => c._id === id); if (i === -1) return null; return db.courts.splice(i, 1)[0]; },
+  addBlockedSlot: async (id, s) => { const c = db.courts.find(c => c._id === id); if (!c) return null; c.blockedSlots.push({ _id: 'block_' + Math.random().toString(36).slice(2, 11), ...s }); return c; },
+  removeBlockedSlot: async (cid, bid) => { const c = db.courts.find(c => c._id === cid); if (!c) return null; c.blockedSlots = c.blockedSlots.filter(s => s._id !== bid); return c; }
 };
 
 const MockBooking = {
-  find: async (filter = {}) => {
-    let list = [...db.bookings];
-    if (filter.user) {
-      list = list.filter(b => b.user.toString() === filter.user.toString());
-    }
-    if (filter.court && filter.date && filter.status) {
-      list = list.filter(b => 
-        b.court.toString() === filter.court.toString() &&
-        b.date === filter.date &&
-        b.status === filter.status
-      );
-    }
-    
-    // Simulate population
-    return list.map(b => {
-      const court = db.courts.find(c => c._id === b.court) || null;
-      const facility = db.facilities.find(f => f._id === b.facility) || null;
-      const user = db.users.find(u => u._id === b.user) || null;
-      return {
-        ...b,
-        court,
-        facility,
-        user: user ? { _id: user._id, name: user.name, email: user.email } : null
-      };
-    });
-  },
-  findById: async (id) => {
-    const b = db.bookings.find(x => x._id === id);
-    if (!b) return null;
-    const court = db.courts.find(c => c._id === b.court) || null;
-    const facility = db.facilities.find(f => f._id === b.facility) || null;
-    const user = db.users.find(u => u._id === b.user) || null;
-    return {
-      ...b,
-      court,
-      facility,
-      user,
-      save: async function() {
-        const idx = db.bookings.findIndex(x => x._id === this._id);
-        if (idx !== -1) {
-          db.bookings[idx] = {
-            _id: this._id,
-            user: this.user._id || this.user,
-            court: this.court._id || this.court,
-            facility: this.facility._id || this.facility,
-            date: this.date,
-            startTime: this.startTime,
-            endTime: this.endTime,
-            duration: this.duration,
-            totalPrice: this.totalPrice,
-            numberOfPlayers: this.numberOfPlayers,
-            shortcutUsed: this.shortcutUsed,
-            status: this.status,
-            refundAmount: this.refundAmount,
-            refundStatus: this.refundStatus,
-            cancellationTime: this.cancellationTime,
-            createdAt: this.createdAt
-          };
-        }
-        return this;
-      }
-    };
-  },
-  create: async (bookingData) => {
-    const newBooking = {
-      _id: 'booking_' + Math.random().toString(36).substr(2, 9),
-      ...bookingData,
-      status: 'confirmed',
-      refundAmount: 0,
-      refundStatus: 'none',
-      createdAt: new Date()
-    };
-    db.bookings.push(newBooking);
-    return newBooking;
-  }
+  find: async () => db.bookings.map(b => { const court = db.courts.find(c => c._id === b.court) || null; const user = db.users.find(u => u._id === b.user) || null; return { ...b, court, user: user ? { _id: user._id, name: user.name, email: user.email } : null }; }),
+  findById: async (id) => { const b = db.bookings.find(x => x._id === id); if (!b) return null; const court = db.courts.find(c => c._id === b.court) || null; const user = db.users.find(u => u._id === b.user) || null; return { ...b, court, user, save: async function () { const i = db.bookings.findIndex(x => x._id === this._id); if (i !== -1) db.bookings[i] = { ...this, _id: this._id, user: this.user?._id || this.user, court: this.court?._id || this.court }; return this; } }; },
+  create: async (d) => { const b = { _id: 'booking_' + Math.random().toString(36).slice(2, 11), ...d, status: 'confirmed', refundAmount: 0, refundStatus: 'none', createdAt: new Date() }; db.bookings.push(b); return b; }
 };
 
-const MockFacility = {
-  find: async () => db.facilities.filter(f => f.isActive),
-  findById: async (id) => db.facilities.find(f => f._id === id) || null,
-  create: async (facilityData) => {
-    const newFacility = {
-      _id: 'fac_' + Math.random().toString(36).substr(2, 9),
-      ...facilityData,
-      blockedSlots: [],
-      isActive: true,
-      createdAt: new Date()
-    };
-    db.facilities.push(newFacility);
-    return newFacility;
-  },
-  findByIdAndUpdate: async (id, updateData) => {
-    const idx = db.facilities.findIndex(f => f._id === id);
-    if (idx === -1) return null;
-    db.facilities[idx] = { ...db.facilities[idx], ...updateData };
-    return db.facilities[idx];
-  },
-  findByIdAndDelete: async (id) => {
-    const idx = db.facilities.findIndex(f => f._id === id);
-    if (idx === -1) return null;
-    const deleted = db.facilities[idx];
-    db.facilities.splice(idx, 1);
-    return deleted;
-  },
-  addBlockedSlot: async (facilityId, slotData) => {
-    const facility = db.facilities.find(f => f._id === facilityId);
-    if (!facility) return null;
-    const newBlock = {
-      _id: 'block_' + Math.random().toString(36).substr(2, 9),
-      ...slotData
-    };
-    facility.blockedSlots.push(newBlock);
-    return facility;
-  },
-  removeBlockedSlot: async (facilityId, blockId) => {
-    const facility = db.facilities.find(f => f._id === facilityId);
-    if (!facility) return null;
-    facility.blockedSlots = facility.blockedSlots.filter(s => s._id !== blockId);
-    return facility;
-  }
-};
-
-const MockTimeSlot = {
-  find: async (filter = {}) => {
-    let list = [...db.timeSlots];
-    if (filter.facility) {
-      list = list.filter(ts => ts.facility === filter.facility);
-    }
-    if (filter.date) {
-      list = list.filter(ts => ts.date === filter.date);
-    }
-    if (filter.isAvailable !== undefined) {
-      list = list.filter(ts => ts.isAvailable === filter.isAvailable);
-    }
-    return list;
-  },
-  findById: async (id) => db.timeSlots.find(ts => ts._id === id) || null,
-  create: async (slotData) => {
-    const newSlot = {
-      _id: 'slot_' + Math.random().toString(36).substr(2, 9),
-      ...slotData,
-      isAvailable: true,
-      isBlocked: false,
-      createdAt: new Date()
-    };
-    db.timeSlots.push(newSlot);
-    return newSlot;
-  },
-  findByIdAndUpdate: async (id, updateData) => {
-    const idx = db.timeSlots.findIndex(ts => ts._id === id);
-    if (idx === -1) return null;
-    db.timeSlots[idx] = { ...db.timeSlots[idx], ...updateData };
-    return db.timeSlots[idx];
-  }
-};
-
-const MockCancellationLog = {
-  find: async (filter = {}) => {
-    let list = [...db.cancellationLogs];
-    if (filter.user) {
-      list = list.filter(cl => cl.user === filter.user || cl.user.toString() === filter.user.toString());
-    }
-    if (filter.booking) {
-      list = list.filter(cl => cl.booking === filter.booking || cl.booking.toString() === filter.booking.toString());
-    }
-    return list;
-  },
-  findById: async (id) => db.cancellationLogs.find(cl => cl._id === id) || null,
-  create: async (logData) => {
-    const newLog = {
-      _id: 'cancl_' + Math.random().toString(36).substr(2, 9),
-      ...logData,
-      cancelledAt: new Date()
-    };
-    db.cancellationLogs.push(newLog);
-    return newLog;
-  }
-};
-
-const MockUsageStats = {
-  find: async (filter = {}) => {
-    let list = [...db.usageStats];
-    if (filter.facility) {
-      list = list.filter(us => us.facility === filter.facility || us.facility.toString() === filter.facility.toString());
-    }
-    if (filter.date) {
-      list = list.filter(us => us.date === filter.date);
-    }
-    return list;
-  },
-  findById: async (id) => db.usageStats.find(us => us._id === id) || null,
-  create: async (statsData) => {
-    const newStats = {
-      _id: 'stats_' + Math.random().toString(36).substr(2, 9),
-      ...statsData,
-      totalBookings: 0,
-      totalHours: 0,
-      totalRevenue: 0,
-      createdAt: new Date()
-    };
-    db.usageStats.push(newStats);
-    return newStats;
-  },
-  findByIdAndUpdate: async (id, updateData) => {
-    const idx = db.usageStats.findIndex(us => us._id === id);
-    if (idx === -1) return null;
-    db.usageStats[idx] = { ...db.usageStats[idx], ...updateData };
-    return db.usageStats[idx];
-  }
-};
-
-module.exports = { MockUser, MockCourt, MockBooking, MockFacility, MockTimeSlot, MockCancellationLog, MockUsageStats };
+module.exports = { MockUser, MockCourt, MockBooking };

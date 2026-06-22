@@ -1,48 +1,36 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
 
 export const AuthContext = createContext();
 
-/**
- * AuthProvider handles user authentication state and API calls.
- */
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (token) {
-      localStorage.setItem('token', token);
-      fetchCurrentUser();
+      fetchUser();
     } else {
-      localStorage.removeItem('token');
-      setUser(null);
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
-  const fetchCurrentUser = async () => {
+  const fetchUser = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success) {
-        setUser(data.user);
-      } else {
-        logout();
-      }
-    } catch (err) {
-      console.error('Error fetching current user:', err);
+      if (data.success) setUser(data.user);
+      else logout();
+    } catch {
+      console.error('Auth fetch failed');
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * Makes authenticated API call to the provided endpoint.
-   */
   const authFetch = async (endpoint, method, body) => {
     try {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -50,9 +38,8 @@ export const AuthProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: body ? JSON.stringify(body) : undefined
       });
-      const data = await res.json();
-      return data;
-    } catch (err) {
+      return await res.json();
+    } catch {
       return { success: false, message: 'Server connection failed.' };
     }
   };
@@ -62,6 +49,8 @@ export const AuthProvider = ({ children }) => {
     if (data.success) {
       localStorage.setItem('token', data.token);
       setToken(data.token);
+      setUser(data.user);
+      setLoading(false);
     }
     return data;
   };
@@ -71,26 +60,30 @@ export const AuthProvider = ({ children }) => {
     if (data.success) {
       localStorage.setItem('token', data.token);
       setToken(data.token);
+      setUser(data.user);
+      setLoading(false);
     }
     return data;
   };
 
-  const waitUntilLoaded = () => {
-    return new Promise(resolve => {
-      const checkLoaded = () => {
-        if (!token || user) {
-          resolve();
-        } else {
-          setTimeout(checkLoaded, 50);
-        }
-      };
-      checkLoaded();
-    });
-  };
-
   const logout = () => {
+    localStorage.removeItem('token');
     setToken('');
     setUser(null);
+    setLoading(false);
+  };
+
+  // waitUntilLoaded is kept for compatibility with any routing guards
+  const waitUntilLoaded = () => {
+    return new Promise(resolve => {
+      if (!loading) return resolve();
+      const interval = setInterval(() => {
+        if (!loading) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 50);
+    });
   };
 
   return (
@@ -98,4 +91,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}
