@@ -3,7 +3,14 @@ const User = require('../models/User');
 const Court = require('../models/Court');
 const Booking = require('../models/Booking');
 
-const isMock = () => process.env.MOCK_DB === 'true';
+let mockDbMode = !process.env.MONGODB_URI && process.env.MOCK_DB === 'true';
+
+const setMockDbMode = (value) => {
+  mockDbMode = Boolean(value);
+  process.env.MOCK_DB = mockDbMode ? 'true' : 'false';
+};
+
+const isMock = () => mockDbMode;
 
 const db = () => ({
   User: isMock() ? MockUser : User,
@@ -11,4 +18,4 @@ const db = () => ({
   Booking: isMock() ? MockBooking : Booking
 });
 
-module.exports = { db, isMock };
+module.exports = { db, isMock, setMockDbMode };

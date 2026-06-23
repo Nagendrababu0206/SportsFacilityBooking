@@ -11,6 +11,9 @@ export default function Dashboard() {
   const [analytics, setAnalytics] = useState(null);
   const [interests, setInterests] = useState([]);
   const [courts, setCourts] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminCourts, setAdminCourts] = useState([]);
+  const [adminSummary, setAdminSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [blockCourtId, setBlockCourtId] = useState('');
@@ -18,6 +21,15 @@ export default function Dashboard() {
   const [blockStart, setBlockStart] = useState('09:00');
   const [blockEnd, setBlockEnd] = useState('12:00');
   const [adminSuccess, setAdminSuccess] = useState('');
+  const [newCourt, setNewCourt] = useState({
+    name: '',
+    sport: 'Tennis',
+    description: '',
+    pricePerHour: '',
+    capacity: '4',
+    address: '',
+    imageUrl: ''
+  });
 
   const getStoredUser = () => {
     try { const u = JSON.parse(atob(token.split('.')[1])); return u; } catch { return null; }
@@ -46,9 +58,31 @@ export default function Dashboard() {
         const sportBreakdown = aData.data.sportBreakdown || [];
         const top = sportBreakdown.filter(s => s.hours > 0).sort((a, b) => b.hours - a.hours).slice(0, 3);
         setInterests(top.map(s => ({ sport: s.sport, hours: s.hours, desc: `${s.hours.toFixed(1)} hrs playing ${s.sport}` })));
+        if (decoded?.role === 'admin') await fetchAdminData();
       } else setError('Failed to load data.');
     } catch { setError('Connection failed.'); }
     finally { setLoading(false); }
+  };
+
+  const fetchAdminData = async () => {
+    if (decoded?.role !== 'admin') return;
+    try {
+      const [summaryRes, usersRes, courtsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/admin/summary`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_BASE_URL}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_BASE_URL}/api/admin/courts`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      const [summaryData, usersData, courtsData] = await Promise.all([
+        summaryRes.json(),
+        usersRes.json(),
+        courtsRes.json()
+      ]);
+      if (summaryData.success) setAdminSummary(summaryData.data);
+      if (usersData.success) setAdminUsers(usersData.data || []);
+      if (courtsData.success) setAdminCourts(courtsData.data || []);
+    } catch {
+      setError('Failed to load admin data.');
+    }
   };
 
   const handleCancel = async (id) => {
@@ -76,6 +110,76 @@ export default function Dashboard() {
       if (data.success) { setAdminSuccess('Slot blocked.'); fetchData(); }
       else setError(data.message);
     } catch { setError('Failed to block.'); }
+  };
+
+  const handleCreateCourt = async (e) => {
+    e.preventDefault();
+    setError('');
+    setAdminSuccess('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/courts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          ...newCourt,
+          pricePerHour: Number(newCourt.pricePerHour),
+          capacity: Number(newCourt.capacity),
+          location: { lat: 0, lng: 0, address: newCourt.address },
+          rules: []
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminSuccess('Court created.');
+        setNewCourt({ name: '', sport: 'Tennis', description: '', pricePerHour: '', capacity: '4', address: '', imageUrl: '' });
+        fetchData();
+        fetchAdminData();
+      } else {
+        setError(data.message || 'Failed to create court.');
+      }
+    } catch {
+      setError('Failed to create court.');
+    }
+  };
+
+  const handleToggleCourt = async (court) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/courts/${court._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ isActive: !court.isActive })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminSuccess(`Court ${court.isActive ? 'deactivated' : 'activated'}.`);
+        fetchData();
+        fetchAdminData();
+      } else {
+        setError(data.message || 'Failed to update court.');
+      }
+    } catch {
+      setError('Failed to update court.');
+    }
+  };
+
+  const handleDeleteCourt = async (courtId) => {
+    if (!window.confirm('Delete this court?')) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/courts/${courtId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminSuccess('Court deleted.');
+        fetchData();
+        fetchAdminData();
+      } else {
+        setError(data.message || 'Failed to delete court.');
+      }
+    } catch {
+      setError('Failed to delete court.');
+    }
   };
 
   if (loading) return <div className="page-loader"><div className="loader-ring" /></div>;
@@ -139,6 +243,33 @@ export default function Dashboard() {
 
       {decoded?.role === 'admin' && (
         <MotionDiv variants={fadeUp}>
+          {adminSummary && (
+            <section className="stats-container" style={{ marginBottom: '2rem' }}>
+              <StatCard icon={<Sparkles size={16} />} label="Users" value={adminSummary.users} hint={`${adminSummary.courts} courts total`} />
+              <StatCard icon={<Calendar size={16} />} label="Bookings" value={adminSummary.bookings} hint={`${adminSummary.confirmedBookings} confirmed`} />
+              <StatCard icon={<ShieldAlert size={16} />} label="Active Courts" value={adminSummary.activeCourts} hint={`${adminSummary.courts - adminSummary.activeCourts} inactive`} />
+              <StatCard icon={<RefreshCw size={16} />} label="Cancelled" value={adminSummary.cancelledBookings} hint="Cancelled reservations" />
+            </section>
+          )}
+
+          <section className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+            <div className="panel-heading"><Plus size={20} /><div><h2>Create Court</h2><p>Add new courts to the booking system.</p></div></div>
+            <form onSubmit={handleCreateCourt} className="admin-form" style={{ marginBottom: '1rem' }}>
+              <label className="form-group"><span className="form-label">Name</span><input className="form-input" value={newCourt.name} onChange={e => setNewCourt({ ...newCourt, name: e.target.value })} required /></label>
+              <label className="form-group"><span className="form-label">Sport</span>
+                <select className="form-input" value={newCourt.sport} onChange={e => setNewCourt({ ...newCourt, sport: e.target.value })}>
+                  {['Tennis', 'Basketball', 'Badminton', 'Football', 'Squash', 'Volleyball'].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </label>
+              <label className="form-group"><span className="form-label">Price</span><input className="form-input" type="number" min="1" value={newCourt.pricePerHour} onChange={e => setNewCourt({ ...newCourt, pricePerHour: e.target.value })} required /></label>
+              <label className="form-group"><span className="form-label">Capacity</span><input className="form-input" type="number" min="1" value={newCourt.capacity} onChange={e => setNewCourt({ ...newCourt, capacity: e.target.value })} required /></label>
+              <label className="form-group"><span className="form-label">Address</span><input className="form-input" value={newCourt.address} onChange={e => setNewCourt({ ...newCourt, address: e.target.value })} /></label>
+              <label className="form-group"><span className="form-label">Image URL</span><input className="form-input" value={newCourt.imageUrl} onChange={e => setNewCourt({ ...newCourt, imageUrl: e.target.value })} /></label>
+              <label className="form-group" style={{ gridColumn: '1 / -1' }}><span className="form-label">Description</span><textarea className="form-input" rows="3" value={newCourt.description} onChange={e => setNewCourt({ ...newCourt, description: e.target.value })} required /></label>
+              <button type="submit" className="btn btn-primary"><Plus size={16} /> Save Court</button>
+            </form>
+          </section>
+
           <section className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
             <div className="panel-heading"><ShieldAlert size={20} /><div><h2>Admin Slot Control</h2><p>Block courts for events.</p></div></div>
             {adminSuccess && <div className="success-card">{adminSuccess}</div>}
@@ -153,6 +284,49 @@ export default function Dashboard() {
               <label className="form-group"><span className="form-label">End</span><input type="text" className="form-input" value={blockEnd} onChange={e => setBlockEnd(e.target.value)} /></label>
               <button type="submit" className="btn btn-primary"><Plus size={16} /> Block Slot</button>
             </form>
+          </section>
+
+          <section className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+            <div className="panel-heading"><Calendar size={20} /><div><h2>Manage Courts</h2><p>Activate, deactivate, or remove courts.</p></div></div>
+            <div className="booking-table-wrapper">
+              <table className="booking-table">
+                <thead><tr><th>Name</th><th>Sport</th><th>Price</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {adminCourts.map(court => (
+                    <tr key={court._id}>
+                      <td><strong>{court.name}</strong></td>
+                      <td>{court.sport}</td>
+                      <td>${court.pricePerHour}</td>
+                      <td>{court.capacity}</td>
+                      <td><span className={`status-badge ${court.isActive ? 'confirmed' : 'cancelled'}`}>{court.isActive ? 'Active' : 'Inactive'}</span></td>
+                      <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button className="btn btn-secondary" onClick={() => handleToggleCourt(court)}>{court.isActive ? 'Deactivate' : 'Activate'}</button>
+                        <button className="btn btn-danger" onClick={() => handleDeleteCourt(court._id)}>Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+            <div className="panel-heading"><Sparkles size={20} /><div><h2>Users</h2><p>Registered platform users.</p></div></div>
+            <div className="booking-table-wrapper">
+              <table className="booking-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Feedback</th></tr></thead>
+                <tbody>
+                  {adminUsers.map(user => (
+                    <tr key={user.id}>
+                      <td><strong>{user.name}</strong></td>
+                      <td>{user.email}</td>
+                      <td>{user.role}</td>
+                      <td>{user.feedbackCount || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         </MotionDiv>
       )}

@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { MockUser } = require('../utils/mockDb');
+const { isMock } = require('../utils/db');
 
-const getModel = () => process.env.MOCK_DB === 'true' ? MockUser : User;
+const getModel = () => isMock() ? MockUser : User;
 const SECRET = process.env.JWT_SECRET || 'sfb_secret_2024';
 
 const protect = async (req, res, next) => {
