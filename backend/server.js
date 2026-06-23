@@ -27,6 +27,8 @@ app.get('/', (req, res) => res.json({ message: 'Sports Facility Booking API' }))
 app.get('/health', (req, res) => res.json({ status: 'ok', mock: isMock() }));
 
 const PORT = parseInt(process.env.PORT, 10) || 10000;
+const MAX_PORT_RETRIES = 3;
+const PORT_RETRY_DELAY = 1000;
 
 const start = async () => {
   try {
@@ -36,6 +38,23 @@ const start = async () => {
     console.error('Failed to start:', err.message);
     process.exit(1);
   }
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+  const tryListen = (attempt = 0) => {
+    const server = app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE' && attempt < MAX_PORT_RETRIES) {
+        console.log(`Port ${PORT} in use, retrying in ${PORT_RETRY_DELAY}ms (${attempt + 1}/${MAX_PORT_RETRIES})...`);
+        setTimeout(() => tryListen(attempt + 1), PORT_RETRY_DELAY);
+      } else {
+        console.error(`Failed to start on port ${PORT}: ${err.message}`);
+        process.exit(1);
+      }
+    });
+  };
+
+  tryListen();
 };
 start();
