@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -20,6 +20,31 @@ function ProtectedRoute({ children }) {
   if (loading) return <div className="page-loader"><div className="loader-ring" /></div>;
   if (!user) return <Navigate to="/login" replace />;
   return children;
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('App crashed:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', color: 'red', background: 'black', minHeight: '100vh' }}>
+          <h2 style={{ color: 'red' }}>ERROR BOUNDARY CAUGHT:</h2>
+          <pre style={{ color: 'white', whiteSpace: 'pre-wrap' }}>{this.state.error?.message}</pre>
+          <pre style={{ color: 'yellow', whiteSpace: 'pre-wrap' }}>{this.state.error?.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 export default function App() {
