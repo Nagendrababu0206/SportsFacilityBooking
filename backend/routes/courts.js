@@ -1,12 +1,14 @@
 const express = require('express');
 const { protect, authorize } = require('../middleware/auth');
-const Court = require('../models/Court');
+const { db, isMock } = require('../utils/db');
 
 const router = express.Router();
+const Court = () => db().Court;
 
 router.get('/', async (req, res) => {
   try {
-    const courts = await Court.find({ isActive: true });
+    const CourtModel = Court();
+    const courts = await (isMock() ? CourtModel.find({ isActive: true }) : CourtModel.find({ isActive: true }));
     res.json({ success: true, count: courts.length, data: courts });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -15,7 +17,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const court = await Court.findById(req.params.id);
+    const court = await Court().findById(req.params.id);
     if (!court) return res.status(404).json({ success: false, message: 'Court not found' });
     res.json({ success: true, data: court });
   } catch (err) {
@@ -25,7 +27,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', protect, authorize('admin'), async (req, res) => {
   try {
-    const court = await Court.create(req.body);
+    const court = await Court().create(req.body);
     res.status(201).json({ success: true, data: court });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -34,7 +36,7 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
 
 router.put('/:id', protect, authorize('admin'), async (req, res) => {
   try {
-    const court = await Court.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const court = await Court().findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!court) return res.status(404).json({ success: false, message: 'Court not found' });
     res.json({ success: true, data: court });
   } catch (err) {
@@ -44,7 +46,7 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
 
 router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
-    const court = await Court.findByIdAndDelete(req.params.id);
+    const court = await Court().findByIdAndDelete(req.params.id);
     if (!court) return res.status(404).json({ success: false, message: 'Court not found' });
     res.json({ success: true, data: {} });
   } catch (err) {
@@ -56,7 +58,7 @@ router.post('/:id/block', protect, authorize('admin'), async (req, res) => {
   try {
     const { date, startTime, endTime, reason } = req.body;
     if (!date || !startTime || !endTime) return res.status(400).json({ success: false, message: 'Provide date, startTime, endTime' });
-    const court = await Court.findById(req.params.id);
+    const court = await Court().findById(req.params.id);
     if (!court) return res.status(404).json({ success: false, message: 'Court not found' });
     court.blockedSlots.push({ date, startTime, endTime, reason: reason || 'Event' });
     await court.save();
@@ -68,7 +70,7 @@ router.post('/:id/block', protect, authorize('admin'), async (req, res) => {
 
 router.delete('/:id/block/:blockId', protect, authorize('admin'), async (req, res) => {
   try {
-    const court = await Court.findById(req.params.id);
+    const court = await Court().findById(req.params.id);
     if (!court) return res.status(404).json({ success: false, message: 'Court not found' });
     court.blockedSlots = (court.blockedSlots || []).filter(slot => slot._id.toString() !== req.params.blockId);
     await court.save();

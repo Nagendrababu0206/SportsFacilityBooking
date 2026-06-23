@@ -1,20 +1,27 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../config';
 
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(() => {
+    try { return localStorage.getItem('token') || ''; } catch { return ''; }
+  });
+  const [loading, setLoading] = useState(() => {
+    try { return !!localStorage.getItem('token'); } catch { return false; }
+  });
+  const initRef = useRef(false);
 
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
     if (token) {
       fetchUser();
     } else {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   const fetchUser = async () => {
     try {
@@ -25,7 +32,7 @@ export function AuthProvider({ children }) {
       if (data.success) setUser(data.user);
       else logout();
     } catch {
-      console.error('Auth fetch failed');
+      logout();
     } finally {
       setLoading(false);
     }
@@ -73,7 +80,6 @@ export function AuthProvider({ children }) {
     setLoading(false);
   };
 
-  // waitUntilLoaded is kept for compatibility with any routing guards
   const waitUntilLoaded = () => {
     return new Promise(resolve => {
       if (!loading) return resolve();
