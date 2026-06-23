@@ -40,14 +40,19 @@ export function AuthProvider({ children }) {
 
   const authFetch = async (endpoint, method, body) => {
     try {
-      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const url = `${API_BASE_URL}${endpoint}`;
+      const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: body ? JSON.stringify(body) : undefined
       });
-      return await res.json();
-    } catch {
-      return { success: false, message: 'Server connection failed.' };
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, message: data.message || `Server error (${res.status})` };
+      }
+      return data;
+    } catch (err) {
+      return { success: false, message: `Server connection failed. Make sure backend is running at ${API_BASE_URL}` };
     }
   };
 
