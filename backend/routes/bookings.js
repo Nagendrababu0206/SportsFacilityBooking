@@ -1,16 +1,24 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
-const Booking = require('../models/Booking');
-const Court = require('../models/Court');
+const { db, isMock } = require('../utils/db');
 
 const router = express.Router();
 
 const findBookings = async () => {
-  return Booking.find().populate('court user');
+  const Booking = db().Booking;
+  if (isMock()) return Booking.find();
+  return Booking.find()
+    .populate('court', 'name sport pricePerHour capacity')
+    .populate('user', 'name email')
+    .sort({ createdAt: -1 });
 };
 
 const findBookingById = async (id) => {
-  return Booking.findById(id).populate('court user');
+  const Booking = db().Booking;
+  if (isMock()) return Booking.findById(id);
+  return Booking.findById(id)
+    .populate('court', 'name sport pricePerHour capacity')
+    .populate('user', 'name email');
 };
 
 const overlap = (s1, e1, s2, e2) => {
@@ -22,7 +30,8 @@ router.get('/', protect, async (req, res) => {
   try {
     let bookings = await findBookings();
     if (req.user.role !== 'admin') {
-      bookings = bookings.filter(b => (b.user?._id || b.user)?.toString() === req.user.id);
+      const userId = (req.user._id || req.user.id)?.toString();
+      bookings = bookings.filter(b => (b.user?._id || b.user)?.toString() === userId);
     }
     bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json({ success: true, count: bookings.length, data: bookings });
@@ -35,6 +44,7 @@ router.get('/slots', async (req, res) => {
   try {
     const { courtId, date } = req.query;
     if (!courtId || !date) return res.status(400).json({ success: false, message: 'courtId and date required' });
+    const Court = db().Court;
     const court = await Court.findById(courtId);
     if (!court) return res.status(404).json({ success: false, message: 'Court not found' });
     const allBookings = await findBookings();
@@ -57,6 +67,7 @@ router.post('/', protect, async (req, res) => {
     if (!courtId || !date || !startTime || !endTime) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
+    const Court = db().Court;
     const court = await Court.findById(courtId);
     if (!court?.isActive) return res.status(404).json({ success: false, message: 'Court not found or inactive' });
     const players = Number(numberOfPlayers) || 1;
@@ -77,8 +88,9 @@ router.post('/', protect, async (req, res) => {
         return res.status(400).json({ success: false, message: 'Slot overlaps with existing booking' });
       }
     }
+    const Booking = db().Booking;
     const booking = await Booking.create({
-      user: req.user.id, court: courtId, date, startTime, endTime, duration: dur,
+      user: req.user._id || req.user.id, court: courtId, date, startTime, endTime, duration: dur,
       totalPrice: price, numberOfPlayers: players, shortcutUsed: false
     });
     res.status(201).json({ success: true, data: booking });
@@ -89,7 +101,6 @@ router.post('/', protect, async (req, res) => {
 
 router.put('/:id/cancel', protect, async (req, res) => {
   try {
-    const Booking = db().Booking;
     const booking = await findBookingById(req.params.id);
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
     const userId = (booking.user?._id || booking.user)?.toString();

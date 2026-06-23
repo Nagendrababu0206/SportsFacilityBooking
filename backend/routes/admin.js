@@ -1,18 +1,23 @@
 const express = require('express');
 const { protect, authorize } = require('../middleware/auth');
-const User = require('../models/User');
-const Court = require('../models/Court');
-const Booking = require('../models/Booking');
+const { db, isMock } = require('../utils/db');
 
 const router = express.Router();
 
+const findUsers = async () => {
+  const User = db().User;
+  if (isMock()) return User.find();
+  return User.find().select('-password').sort({ createdAt: -1 });
+};
+
 router.get('/users', protect, authorize('admin'), async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await findUsers();
     const data = users.map(u => ({
       id: u._id, name: u.name, email: u.email, role: u.role,
       interests: u.interests || [], feedback: u.feedback || [],
-      createdAt: u.createdAt, feedbackCount: (u.feedback || []).length
+      createdAt: u.createdAt, lastLoginAt: u.lastLoginAt || null,
+      feedbackCount: (u.feedback || []).length
     }));
     res.json({ success: true, count: data.length, data });
   } catch (err) {
@@ -22,7 +27,7 @@ router.get('/users', protect, authorize('admin'), async (req, res) => {
 
 router.get('/courts', protect, authorize('admin'), async (req, res) => {
   try {
-    const courts = await Court.find();
+    const courts = await db().Court.find();
     res.json({ success: true, count: courts.length, data: courts });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -31,7 +36,7 @@ router.get('/courts', protect, authorize('admin'), async (req, res) => {
 
 router.get('/bookings', protect, authorize('admin'), async (req, res) => {
   try {
-    const bookings = await Booking.find();
+    const bookings = await db().Booking.find();
     res.json({ success: true, count: bookings.length, data: bookings });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -41,9 +46,9 @@ router.get('/bookings', protect, authorize('admin'), async (req, res) => {
 router.get('/summary', protect, authorize('admin'), async (req, res) => {
   try {
     const [users, courts, bookings] = await Promise.all([
-      User.find(),
-      Court.find(),
-      Booking.find()
+      findUsers(),
+      db().Court.find(),
+      db().Booking.find()
     ]);
     res.json({
       success: true,

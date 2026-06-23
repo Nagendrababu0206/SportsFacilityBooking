@@ -1,10 +1,16 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  const useMock = process.env.MOCK_DB === 'true';
   const mongoUri = (process.env.MONGODB_URI || '').trim();
 
+  if (useMock && !mongoUri) {
+    console.log('Using in-memory mock database (MOCK_DB=true, no MONGODB_URI)');
+    return;
+  }
+
   if (!mongoUri) {
-    throw new Error('MONGODB_URI not set');
+    throw new Error('MONGODB_URI not set. Add your Atlas URI to backend/.env or set MOCK_DB=true for demo mode.');
   }
 
   if (!/^mongodb(\+srv)?:\/\//i.test(mongoUri)) {
@@ -19,9 +25,14 @@ const connectDB = async () => {
       maxPoolSize: 10,
       tls: true
     });
-    console.log(`MongoDB: ${conn.connection.host}`);
+    process.env.MOCK_DB = 'false';
+    console.log(`MongoDB connected: ${conn.connection.host}`);
   } catch (err) {
-    throw err;
+    if (useMock) {
+      console.log(`MongoDB failed: ${err.message}. Using mock DB (MOCK_DB=true).`);
+      return;
+    }
+    throw new Error(`MongoDB connection failed: ${err.message}`);
   }
 };
 module.exports = connectDB;

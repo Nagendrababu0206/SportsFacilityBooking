@@ -311,16 +311,20 @@ export default function Dashboard() {
           </section>
 
           <section className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-            <div className="panel-heading"><Sparkles size={20} /><div><h2>Users</h2><p>Registered platform users.</p></div></div>
+            <div className="panel-heading"><Sparkles size={20} /><div><h2>Users</h2><p>Registered users and login activity.</p></div></div>
             <div className="booking-table-wrapper">
               <table className="booking-table">
-                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Feedback</th></tr></thead>
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Last Login</th><th>Feedback</th></tr></thead>
                 <tbody>
-                  {adminUsers.map(user => (
+                  {adminUsers.length === 0 ? (
+                    <tr><td colSpan={6} className="muted-text">No users yet.</td></tr>
+                  ) : adminUsers.map(user => (
                     <tr key={user.id}>
                       <td><strong>{user.name}</strong></td>
                       <td>{user.email}</td>
                       <td>{user.role}</td>
+                      <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
+                      <td>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}</td>
                       <td>{user.feedbackCount || 0}</td>
                     </tr>
                   ))}

@@ -15,3 +15,5 @@ services:
         sync: false
       - key: CORS_ORIGIN
         sync: false
+      - key: MOCK_DB
+        value: false
