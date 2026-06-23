@@ -12,11 +12,8 @@ if (fs.existsSync(envPath)) {
 const connectDB = require('./config/db');
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
-
-app.use(cors({ origin: corsOrigin }));
+app.use(cors());
+app.options('*', cors());
 app.use(express.json());
 
 app.use('/api/auth', require('./routes/auth'));
