@@ -33,6 +33,10 @@ const start = async () => {
     await connectDB();
     console.log('MOCK_DB:', isMock());
   } catch (err) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Production DB startup failed:', err.message);
+      process.exit(1);
+    }
     console.log('DB error, starting without DB:', err.message);
   }
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
