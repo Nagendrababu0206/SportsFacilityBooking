@@ -1,12 +1,14 @@
 const express = require('express');
 const { protect, authorize } = require('../middleware/auth');
-const { db } = require('../utils/db');
+const User = require('../models/User');
+const Court = require('../models/Court');
+const Booking = require('../models/Booking');
 
 const router = express.Router();
 
 router.get('/users', protect, authorize('admin'), async (req, res) => {
   try {
-    const users = await db().User.find();
+    const users = await User.find();
     const data = users.map(u => ({
       id: u._id, name: u.name, email: u.email, role: u.role,
       interests: u.interests || [], feedback: u.feedback || [],
@@ -20,7 +22,7 @@ router.get('/users', protect, authorize('admin'), async (req, res) => {
 
 router.get('/courts', protect, authorize('admin'), async (req, res) => {
   try {
-    const courts = await db().Court.find();
+    const courts = await Court.find();
     res.json({ success: true, count: courts.length, data: courts });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -29,7 +31,6 @@ router.get('/courts', protect, authorize('admin'), async (req, res) => {
 
 router.get('/bookings', protect, authorize('admin'), async (req, res) => {
   try {
-    const Booking = db().Booking;
     const bookings = await Booking.find();
     res.json({ success: true, count: bookings.length, data: bookings });
   } catch (err) {
@@ -40,9 +41,9 @@ router.get('/bookings', protect, authorize('admin'), async (req, res) => {
 router.get('/summary', protect, authorize('admin'), async (req, res) => {
   try {
     const [users, courts, bookings] = await Promise.all([
-      db().User.find(),
-      db().Court.find(),
-      db().Booking.find()
+      User.find(),
+      Court.find(),
+      Booking.find()
     ]);
     res.json({
       success: true,

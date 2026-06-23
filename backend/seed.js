@@ -13,8 +13,7 @@ const courts = [
 async function seed() {
   try {
     if (!process.env.MONGODB_URI) {
-      console.log('Set MONGODB_URI to seed MongoDB. Using MOCK_DB=true for in-memory.');
-      process.exit(0);
+      throw new Error('MONGODB_URI is required to seed MongoDB');
     }
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');

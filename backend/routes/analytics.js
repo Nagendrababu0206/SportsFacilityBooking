@@ -1,19 +1,17 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
-const { db, isMock } = require('../utils/db');
+const Court = require('../models/Court');
+const Booking = require('../models/Booking');
 
 const router = express.Router();
 
 const findBookings = async () => {
-  const Booking = db().Booking;
-  const query = Booking.find();
-  return isMock() ? query : query.populate('court user');
+  return Booking.find().populate('court user');
 };
 
 router.get('/suggestions', protect, async (req, res) => {
   try {
     const { courtId } = req.query;
-    const Court = db().Court;
     let courts = courtId ? [await Court.findById(courtId)].filter(Boolean) : await Court.find({ isActive: true });
     const allBookings = await findBookings();
 
@@ -54,7 +52,6 @@ router.get('/suggestions', protect, async (req, res) => {
 router.get('/heatmap', protect, async (req, res) => {
   try {
     const { courtId, date, days = '7' } = req.query;
-    const Court = db().Court;
     const courts = courtId ? [await Court.findById(courtId)].filter(Boolean) : await Court.find({ isActive: true });
     const all = await findBookings();
     const reqDate = date || new Date().toISOString().split('T')[0];

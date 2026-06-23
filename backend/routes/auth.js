@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { protect } = require('../middleware/auth');
-const { db, isMock } = require('../utils/db');
+const User = require('../models/User');
 
 const router = express.Router();
 const SECRET = process.env.JWT_SECRET || 'sfb_secret_2024';
@@ -16,7 +16,6 @@ router.post('/register', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password required' });
     const normalized = email.trim().toLowerCase();
-    const User = db().User;
     if (await User.findOne({ email: normalized })) {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
@@ -32,14 +31,10 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password required' });
-    const User = db().User;
     const normalized = email.trim().toLowerCase();
-    // For mongoose we need to select password explicitly since select:false
-    const user = isMock() ? await User.findOne({ email: normalized }) : await User.findOne({ email: normalized }).select('+password');
+    const user = await User.findOne({ email: normalized }).select('+password');
     if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    const match = isMock()
-      ? await User.matchPassword(password, user.password)
-      : await user.matchPassword(password);
+    const match = await user.matchPassword(password);
     if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials' });
     sendToken(user, 200, res);
   } catch (err) {

@@ -1,15 +1,10 @@
 const mongoose = require('mongoose');
-const { setMockDbMode } = require('../utils/db');
 
 const connectDB = async () => {
   const mongoUri = (process.env.MONGODB_URI || '').trim();
 
   if (!mongoUri) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('MONGODB_URI not set in production');
-    }
-    setMockDbMode(true);
-    return;
+    throw new Error('MONGODB_URI not set');
   }
 
   if (!/^mongodb(\+srv)?:\/\//i.test(mongoUri)) {
@@ -24,12 +19,9 @@ const connectDB = async () => {
       maxPoolSize: 10,
       tls: true
     });
-    setMockDbMode(false);
     console.log(`MongoDB: ${conn.connection.host}`);
   } catch (err) {
-    if (process.env.NODE_ENV === 'production') throw err;
-    console.log(`MongoDB failed: ${err.message}. Falling back to mock DB.`);
-    setMockDbMode(true);
+    throw err;
   }
 };
 module.exports = connectDB;

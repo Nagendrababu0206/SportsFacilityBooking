@@ -1,9 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { MockUser } = require('../utils/mockDb');
-const { isMock } = require('../utils/db');
 
-const getModel = () => isMock() ? MockUser : User;
 const SECRET = process.env.JWT_SECRET || 'sfb_secret_2024';
 
 const protect = async (req, res, next) => {
@@ -13,7 +10,7 @@ const protect = async (req, res, next) => {
   }
   try {
     const decoded = jwt.verify(auth.split(' ')[1], SECRET);
-    req.user = await getModel().findById(decoded.id);
+    req.user = await User.findById(decoded.id);
     if (!req.user) return res.status(401).json({ success: false, message: 'User not found' });
     next();
   } catch {
