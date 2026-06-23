@@ -86,7 +86,11 @@ export default function BookingPage() {
         body: JSON.stringify({ courtId, date: selectedDate, startTime: selectedSlot.start, endTime: selectedSlot.end, numberOfPlayers })
       });
       const data = await res.json();
-      if (data.success) { setSuccessMsg('Booking confirmed!'); setTimeout(() => navigate('/dashboard'), 1500); }
+      if (data.success) {
+        setSuccessMsg('Booking confirmed!');
+        await Promise.all([fetchSlots(), fetchHeatmap()]);
+        setTimeout(() => navigate('/dashboard'), 1500);
+      }
       else setError(data.message || 'Booking failed.');
     } catch { setError('Could not process booking.'); }
     finally { setBookingLoading(false); }

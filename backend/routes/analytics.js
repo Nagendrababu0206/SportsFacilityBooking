@@ -1,16 +1,21 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
-const { db } = require('../utils/db');
+const { db, isMock } = require('../utils/db');
 
 const router = express.Router();
+
+const findBookings = async () => {
+  const Booking = db().Booking;
+  const query = Booking.find();
+  return isMock() ? query : query.populate('court user');
+};
 
 router.get('/suggestions', protect, async (req, res) => {
   try {
     const { courtId } = req.query;
     const Court = db().Court;
-    const Booking = db().Booking;
     let courts = courtId ? [await Court.findById(courtId)].filter(Boolean) : await Court.find({ isActive: true });
-    const allBookings = await Booking.find();
+    const allBookings = await findBookings();
 
     const slotStatus = (h) => {
       if (h >= 16 && h < 21) return { label: 'Peak', discount: 0, desc: 'High demand' };
@@ -50,9 +55,8 @@ router.get('/heatmap', protect, async (req, res) => {
   try {
     const { courtId, date, days = '7' } = req.query;
     const Court = db().Court;
-    const Booking = db().Booking;
     const courts = courtId ? [await Court.findById(courtId)].filter(Boolean) : await Court.find({ isActive: true });
-    const all = await Booking.find();
+    const all = await findBookings();
     const reqDate = date || new Date().toISOString().split('T')[0];
     const range = Math.min(parseInt(days) || 7, 90);
     const start = new Date(reqDate); start.setDate(start.getDate() - range);
@@ -106,8 +110,7 @@ router.get('/heatmap', protect, async (req, res) => {
 router.get('/usage', protect, async (req, res) => {
   try {
     const userId = req.user.id;
-    const Booking = db().Booking;
-    const all = await Booking.find();
+    const all = await findBookings();
     const bookings = all.filter(b => (b.user?._id || b.user)?.toString() === userId);
     let totalSpend = 0, totalHours = 0, cancelled = 0, active = 0, refunds = 0;
     const sportUsage = { Tennis: 0, Basketball: 0, Badminton: 0, Football: 0, Squash: 0, Volleyball: 0 };

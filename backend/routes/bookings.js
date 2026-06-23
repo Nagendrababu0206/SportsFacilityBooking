@@ -1,8 +1,20 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
-const { db } = require('../utils/db');
+const { db, isMock } = require('../utils/db');
 
 const router = express.Router();
+
+const findBookings = async () => {
+  const Booking = db().Booking;
+  const query = Booking.find();
+  return isMock() ? query : query.populate('court user');
+};
+
+const findBookingById = async (id) => {
+  const Booking = db().Booking;
+  const query = Booking.findById(id);
+  return isMock() ? query : query.populate('court user');
+};
 
 const overlap = (s1, e1, s2, e2) => {
   const toM = (t) => t.split(':').reduce((h, m) => h * 60 + Number(m), 0);
@@ -11,8 +23,7 @@ const overlap = (s1, e1, s2, e2) => {
 
 router.get('/', protect, async (req, res) => {
   try {
-    const Booking = db().Booking;
-    let bookings = await Booking.find();
+    let bookings = await findBookings();
     if (req.user.role !== 'admin') {
       bookings = bookings.filter(b => (b.user?._id || b.user)?.toString() === req.user.id);
     }
@@ -30,8 +41,7 @@ router.get('/slots', async (req, res) => {
     const Court = db().Court;
     const court = await Court.findById(courtId);
     if (!court) return res.status(404).json({ success: false, message: 'Court not found' });
-    const Booking = db().Booking;
-    const allBookings = await Booking.find();
+    const allBookings = await findBookings();
     const courtBookings = allBookings.filter(b =>
       (b.court?._id || b.court)?.toString() === courtId && b.date === date && b.status === 'confirmed'
     );
@@ -67,7 +77,7 @@ router.post('/', protect, async (req, res) => {
       }
     }
     const Booking = db().Booking;
-    const existing = await Booking.find();
+    const existing = await findBookings();
     for (const eb of existing.filter(b => (b.court?._id || b.court)?.toString() === courtId && b.date === date && b.status === 'confirmed')) {
       if (overlap(startTime, endTime, eb.startTime, eb.endTime)) {
         return res.status(400).json({ success: false, message: 'Slot overlaps with existing booking' });
@@ -86,7 +96,7 @@ router.post('/', protect, async (req, res) => {
 router.put('/:id/cancel', protect, async (req, res) => {
   try {
     const Booking = db().Booking;
-    const booking = await Booking.findById(req.params.id);
+    const booking = await findBookingById(req.params.id);
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
     const userId = (booking.user?._id || booking.user)?.toString();
     if (userId !== req.user.id && req.user.role !== 'admin') {
