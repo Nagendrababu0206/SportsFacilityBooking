@@ -76,7 +76,13 @@ router.post('/', protect, async (req, res) => {
     }
     const dur = (endTime.split(':').reduce((h, m) => h * 60 + Number(m), 0) - startTime.split(':').reduce((h, m) => h * 60 + Number(m), 0)) / 60;
     if (dur <= 0) return res.status(400).json({ success: false, message: 'End time must be after start time' });
-    const price = dur * court.pricePerHour;
+    const getPriceMultiplier = (startStr) => {
+      const h = parseInt(startStr.split(':')[0], 10);
+      if (h >= 16 && h < 21) return 1.0; // Peak hours: 4 PM - 9 PM (100% price)
+      if ((h >= 7 && h < 10) || (h >= 21 && h < 22)) return 0.9; // Moderate hours: 10% off
+      return 0.8; // Off-Peak / Weak hours: 20% off
+    };
+    const price = dur * court.pricePerHour * getPriceMultiplier(startTime);
     for (const bs of court.blockedSlots || []) {
       if (bs.date === date && overlap(startTime, endTime, bs.startTime, bs.endTime)) {
         return res.status(400).json({ success: false, message: `Slot blocked: ${bs.reason}` });
@@ -110,8 +116,22 @@ router.put('/:id/cancel', protect, async (req, res) => {
     if (booking.status === 'cancelled') return res.status(400).json({ success: false, message: 'Already cancelled' });
     const start = new Date(`${booking.date}T${booking.startTime}:00`);
     const hoursDiff = (start - new Date()) / (1000 * 60 * 60);
-    let refund = hoursDiff >= 24 ? booking.totalPrice : hoursDiff >= 12 ? booking.totalPrice * 0.5 : 0;
-    let refundStatus = hoursDiff >= 24 ? 'full' : hoursDiff >= 12 ? 'partial' : 'none';
+    
+    let refund = 0;
+    let refundStatus = 'none';
+    
+    if (req.user.role === 'admin') {
+      refund = booking.totalPrice;
+      refundStatus = 'full';
+    } else {
+      if (hoursDiff >= 12) {
+        refund = booking.totalPrice;
+        refundStatus = 'full';
+      } else if (hoursDiff >= 6) {
+        refund = booking.totalPrice * 0.5;
+        refundStatus = 'partial';
+      }
+    }
     booking.status = 'cancelled';
     booking.refundAmount = refund;
     booking.refundStatus = refundStatus;

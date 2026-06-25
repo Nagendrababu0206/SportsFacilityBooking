@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminCourts, setAdminCourts] = useState([]);
   const [adminSummary, setAdminSummary] = useState(null);
+  const [adminBookings, setAdminBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [blockCourtId, setBlockCourtId] = useState('');
@@ -67,19 +68,22 @@ export default function Dashboard() {
   const fetchAdminData = async () => {
     if (decoded?.role !== 'admin') return;
     try {
-      const [summaryRes, usersRes, courtsRes] = await Promise.all([
+      const [summaryRes, usersRes, courtsRes, bookingsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/admin/summary`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_BASE_URL}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_BASE_URL}/api/admin/courts`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API_BASE_URL}/api/admin/courts`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_BASE_URL}/api/admin/bookings`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
-      const [summaryData, usersData, courtsData] = await Promise.all([
+      const [summaryData, usersData, courtsData, bookingsData] = await Promise.all([
         summaryRes.json(),
         usersRes.json(),
-        courtsRes.json()
+        courtsRes.json(),
+        bookingsRes.json()
       ]);
       if (summaryData.success) setAdminSummary(summaryData.data);
       if (usersData.success) setAdminUsers(usersData.data || []);
       if (courtsData.success) setAdminCourts(courtsData.data || []);
+      if (bookingsData.success) setAdminBookings(bookingsData.data || []);
     } catch {
       setError('Failed to load admin data.');
     }
@@ -326,6 +330,37 @@ export default function Dashboard() {
                       <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
                       <td>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}</td>
                       <td>{user.feedbackCount || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+            <div className="panel-heading"><Calendar size={20} /><div><h2>Manage Student Bookings</h2><p>View and cancel student reservations.</p></div></div>
+            <div className="booking-table-wrapper">
+              <table className="booking-table">
+                <thead><tr><th>Student</th><th>Court</th><th>Date</th><th>Time</th><th>Players</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {adminBookings.length === 0 ? (
+                    <tr><td colSpan={8} className="muted-text">No bookings found.</td></tr>
+                  ) : adminBookings.map(b => (
+                    <tr key={b._id}>
+                      <td><strong>{b.user?.name || 'User'}</strong><span>{b.user?.email || 'N/A'}</span></td>
+                      <td><strong>{b.court?.name || 'Court'}</strong><span>{b.court?.sport || ''}</span></td>
+                      <td>{b.date}</td>
+                      <td>{b.startTime} - {b.endTime}</td>
+                      <td>{b.numberOfPlayers}</td>
+                      <td>${b.totalPrice?.toFixed(0)}</td>
+                      <td><span className={`status-badge ${b.status}`}>{b.status}</span></td>
+                      <td>
+                        {b.status === 'confirmed' ? (
+                          <button className="btn btn-danger" onClick={() => handleCancel(b._id)}>Cancel</button>
+                        ) : (
+                          <span className="muted-text">Cancelled</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

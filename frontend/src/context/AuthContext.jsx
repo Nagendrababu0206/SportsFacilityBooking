@@ -38,24 +38,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const authFetch = async (endpoint, method, body) => {
-    try {
-      const url = `${API_BASE_URL}${endpoint}`;
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: body ? JSON.stringify(body) : undefined
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, message: data.message || `Server error (${res.status})` };
-      }
-      return data;
-    } catch (err) {
-      return { success: false, message: `Server connection failed. Make sure backend is running at ${API_BASE_URL}` };
-    }
-  };
-
   const login = async (email, password) => {
     const data = await authFetch('/api/auth/login', 'POST', { email, password });
     if (data.success) {
@@ -83,6 +65,24 @@ export function AuthProvider({ children }) {
     setToken('');
     setUser(null);
     setLoading(false);
+  };
+
+  const authFetch = async (endpoint, method, body) => {
+    try {
+      const url = `${API_BASE_URL}${endpoint}`;
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, message: data.message || `Server error (${res.status})` };
+      }
+      return data;
+    } catch {
+      return { success: false, message: `Server connection failed at ${API_BASE_URL}` };
+    }
   };
 
   const waitUntilLoaded = () => {

@@ -35,6 +35,18 @@ export default function BookingPage() {
   const [successMsg, setSuccessMsg] = useState('');
   const token = localStorage.getItem('token');
 
+  const getPricing = (startTime) => {
+    if (!startTime) return { multiplier: 1.0, discount: 0, label: 'Standard Rate' };
+    const h = parseInt(startTime.split(':')[0], 10);
+    if (h >= 16 && h < 21) {
+      return { multiplier: 1.0, discount: 0, label: 'Peak Hour (Standard Price)' };
+    } else if ((h >= 7 && h < 10) || (h >= 21 && h < 22)) {
+      return { multiplier: 0.9, discount: 10, label: 'Moderate Hour (10% Off)' };
+    } else {
+      return { multiplier: 0.8, discount: 20, label: 'Off-Peak / Weak Hour (20% Off)' };
+    }
+  };
+
   useEffect(() => { fetchCourt(); }, []);
   useEffect(() => { if (courtId && selectedDate) { fetchSlots(); fetchHeatmap(); setSelectedSlot(null); } }, [courtId, selectedDate]);
 
@@ -135,6 +147,15 @@ export default function BookingPage() {
               onChange={e => setSelectedDate(e.target.value)} />
           </MotionDiv>
 
+          <MotionDiv variants={fadeUp} className="glass-panel" style={{ padding: '1rem', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-cyan)', fontSize: '0.95rem', marginBottom: '0.5rem' }}><Sparkles size={16} /> Dynamic Rates & Hour Demand:</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              <div>🔥 <strong>Peak Hours (4:00 PM - 9:00 PM)</strong>: High demand, Standard Rate (100% price)</div>
+              <div>⚡ <strong>Moderate Hours (7:00 AM - 10:00 AM, 9:00 PM - 10:00 PM)</strong>: Good availability, 10% Off</div>
+              <div>❄️ <strong>Off-Peak / Weak Hours (Other times)</strong>: Saver slot, 20% Off!</div>
+            </div>
+          </MotionDiv>
+
           <MotionDiv variants={fadeUp} style={{ marginBottom: '1rem' }}>
             <label className="form-label">Available Slots (7AM - 10PM)</label>
             <div className="slots-grid">
@@ -195,17 +216,30 @@ export default function BookingPage() {
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Max {court.capacity} players</span>
           </MotionDiv>
 
-          {selectedSlot && (
-            <MotionDiv variants={fadeUp} style={{ background: 'rgba(79,172,254,0.05)', border: '1px solid rgba(79,172,254,0.15)', padding: '1rem', borderRadius: '12px', marginBottom: '1rem' }}>
-              <h4 style={{ marginBottom: '0.5rem', color: '#fff' }}><Receipt size={16} style={{ verticalAlign: 'middle' }} /> Booking Summary</h4>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                <span>{court.name} — 1 hour</span><span>${court.pricePerHour}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.1rem', color: '#fff', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <span>Total</span><span className="gradient-text">${court.pricePerHour}</span>
-              </div>
-            </MotionDiv>
-          )}
+          {selectedSlot && (() => {
+            const pricing = getPricing(selectedSlot.start);
+            const basePrice = court.pricePerHour;
+            const finalPrice = basePrice * pricing.multiplier;
+            return (
+              <MotionDiv variants={fadeUp} style={{ background: 'rgba(79,172,254,0.05)', border: '1px solid rgba(79,172,254,0.15)', padding: '1rem', borderRadius: '12px', marginBottom: '1rem' }}>
+                <h4 style={{ marginBottom: '0.5rem', color: '#fff' }}><Receipt size={16} style={{ verticalAlign: 'middle' }} /> Booking Summary</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                  <span>Base Rate</span><span>${basePrice.toFixed(2)} / hr</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                  <span>Pricing Mode</span><span>{pricing.label}</span>
+                </div>
+                {pricing.discount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--success)', marginTop: '0.2rem' }}>
+                    <span>Discount</span><span>-{pricing.discount}%</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.1rem', color: '#fff', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span>Total</span><span className="gradient-text">${finalPrice.toFixed(2)}</span>
+                </div>
+              </MotionDiv>
+            );
+          })()}
 
           <MotionDiv variants={fadeUp}>
             <button onClick={handleBook} disabled={!selectedSlot || bookingLoading} className="btn btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>

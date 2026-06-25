@@ -19,11 +19,12 @@ const connectDB = async () => {
 
   try {
     mongoose.set('bufferCommands', false);
+    const isLocal = mongoUri.includes('localhost') || mongoUri.includes('127.0.0.1');
     const conn = await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: Number(process.env.MONGO_TIMEOUT || 10000),
       connectTimeoutMS: Number(process.env.MONGO_TIMEOUT || 10000),
       maxPoolSize: 10,
-      tls: true
+      tls: !isLocal
     });
     process.env.MOCK_DB = 'false';
     console.log(`MongoDB connected: ${conn.connection.host}`);

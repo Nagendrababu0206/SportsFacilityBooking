@@ -46,7 +46,20 @@ const MockUser = {
 
 const MockCourt = {
   find: async (f) => (f?.isActive !== undefined ? db.courts.filter(c => c.isActive) : db.courts),
-  findById: async (id) => db.courts.find(c => c._id === id) || null,
+  findById: async (id) => {
+    const c = db.courts.find(x => x._id === id);
+    if (!c) return null;
+    return {
+      ...c,
+      save: async function () {
+        const i = db.courts.findIndex(x => x._id === this._id);
+        if (i !== -1) {
+          db.courts[i] = { ...this };
+        }
+        return this;
+      }
+    };
+  },
   create: async (d) => { const c = { _id: 'court_' + Math.random().toString(36).slice(2, 11), ...d, blockedSlots: [], isActive: true, createdAt: new Date() }; db.courts.push(c); return c; },
   findByIdAndUpdate: async (id, u) => { const i = db.courts.findIndex(c => c._id === id); if (i === -1) return null; db.courts[i] = { ...db.courts[i], ...u }; return db.courts[i]; },
   findByIdAndDelete: async (id) => { const i = db.courts.findIndex(c => c._id === id); if (i === -1) return null; return db.courts.splice(i, 1)[0]; },

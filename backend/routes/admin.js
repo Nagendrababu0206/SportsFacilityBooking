@@ -36,7 +36,13 @@ router.get('/courts', protect, authorize('admin'), async (req, res) => {
 
 router.get('/bookings', protect, authorize('admin'), async (req, res) => {
   try {
-    const bookings = await db().Booking.find();
+    const Booking = db().Booking;
+    const bookings = await (isMock()
+      ? Booking.find()
+      : Booking.find()
+          .populate('court', 'name sport pricePerHour capacity')
+          .populate('user', 'name email')
+          .sort({ createdAt: -1 }));
     res.json({ success: true, count: bookings.length, data: bookings });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
