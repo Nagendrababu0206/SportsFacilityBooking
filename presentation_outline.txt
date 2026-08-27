@@ -1,0 +1,60 @@
+Sports Facility Booking System Presentation
+
+Slide 1 - Title
+Title: Sports Facility Booking System
+Subtitle: A smart campus booking platform for courts, slots, and admin control
+
+Slide 2 - What the project does
+Title: One platform for booking and managing sports venues
+Key points:
+- Users can browse venues, check availability, and reserve slots.
+- Admins can create courts, block time ranges, and manage bookings.
+- The system keeps the booking flow simple and centralized.
+
+Slide 3 - Core features
+Title: The app covers the full booking lifecycle
+Key points:
+- Secure login and registration
+- Venue discovery with distance-based sorting
+- Slot selection with booking confirmation
+- Booking history, cancellation, and refunds
+- Admin dashboard for venue and booking management
+
+Slide 4 - How the system works
+Title: The backend prevents conflicts before a booking is saved
+Key points:
+- The frontend sends the selected court, date, and time slot.
+- The backend checks overlapping confirmed bookings.
+- It also checks blocked slots and court capacity.
+- Only valid bookings are stored in MongoDB.
+
+Slide 5 - Analytics and demand heatmap
+Title: Demand insights help users choose better slots
+Key points:
+- The heatmap counts bookings by hour.
+- Busy hours are marked as high demand.
+- Quieter hours are highlighted as easier booking windows.
+- Historical booking patterns improve the recommendation view.
+
+Slide 6 - Technology stack
+Title: Modern full-stack architecture
+Key points:
+- Frontend: React, Vite, React Router, Framer Motion
+- Backend: Node.js, Express, JWT, bcryptjs
+- Database: MongoDB with Mongoose
+- Tooling: nodemon, concurrently, dotenv, CORS
+
+Slide 7 - Why this project matters
+Title: Built for real campus or institutional use
+Key points:
+- Reduces manual booking work
+- Avoids double booking
+- Gives admins control over courts and slots
+- Provides a clean user experience for players and staff
+
+Slide 8 - Closing
+Title: A practical booking system with room to grow
+Key points:
+- Strong base for campus sports management
+- Ready for future upgrades like payments, maps, and smarter demand prediction
+- Good foundation for a production booking platform
