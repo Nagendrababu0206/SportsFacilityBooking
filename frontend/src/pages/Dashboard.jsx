@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
-import { BarChart2, Calendar, Clock, DollarSign, Plus, RefreshCw, ShieldAlert, Sparkles } from 'lucide-react';
+import { BarChart2, Calendar, Clock, IndianRupee, Plus, RefreshCw, ShieldAlert, Sparkles } from 'lucide-react';
 import { MotionDiv, MotionSection, fadeUp, stagger } from '../utils/animations';
 
 export default function Dashboard() {
@@ -206,8 +206,8 @@ export default function Dashboard() {
           <MotionDiv variants={fadeUp} className="stats-container">
             <StatCard icon={<Calendar size={16} />} label="Total Bookings" value={analytics.summary.totalBookings} hint={`${analytics.summary.activeBookings} active, ${analytics.summary.cancelledBookings} cancelled`} />
             <StatCard icon={<Clock size={16} />} label="Hours Played" value={`${analytics.summary.totalHours.toFixed(1)}h`} hint="Across confirmed slots" />
-            <StatCard icon={<DollarSign size={16} />} label="Total Spend" value={`$${analytics.summary.totalSpend.toFixed(0)}`} hint="Hourly charges" />
-            <StatCard icon={<RefreshCw size={16} />} label="Refunds" value={`$${analytics.summary.totalRefundsReceived.toFixed(0)}`} hint="From cancellations" />
+            <StatCard icon={<IndianRupee size={16} />} label="Total Spend" value={`₹${analytics.summary.totalSpend.toFixed(0)}`} hint="Hourly charges" />
+            <StatCard icon={<RefreshCw size={16} />} label="Refunds" value={`₹${analytics.summary.totalRefundsReceived.toFixed(0)}`} hint="From cancellations" />
           </MotionDiv>
 
           <MotionDiv variants={fadeUp} className="grid-2 dashboard-charts">
@@ -217,11 +217,11 @@ export default function Dashboard() {
                 return <ChartRow key={s.sport} label={s.sport} value={`${s.hours.toFixed(1)}h`} width={(s.hours / max) * 100} />;
               })}
             </ChartPanel>
-            <ChartPanel title="Monthly Spending" icon={<DollarSign size={18} />}>
+            <ChartPanel title="Monthly Spending" icon={<IndianRupee size={18} />}>
               {(analytics.monthlyTrends || []).length === 0 ? <div className="empty-state">Book a court to see trends.</div> :
                 analytics.monthlyTrends.map(t => {
                   const max = Math.max(...analytics.monthlyTrends.map(x => x.spend), 1);
-                  return <ChartRow key={t.month} label={t.month} value={`$${t.spend.toFixed(0)}`} width={(t.spend / max) * 100} />;
+                  return <ChartRow key={t.month} label={t.month} value={`₹${t.spend.toFixed(0)}`} width={(t.spend / max) * 100} />;
                 })
               }
             </ChartPanel>
@@ -300,7 +300,7 @@ export default function Dashboard() {
                     <tr key={court._id}>
                       <td><strong>{court.name}</strong></td>
                       <td>{court.sport}</td>
-                      <td>${court.pricePerHour}</td>
+                      <td>₹{court.pricePerHour}</td>
                       <td>{court.capacity}</td>
                       <td><span className={`status-badge ${court.isActive ? 'confirmed' : 'cancelled'}`}>{court.isActive ? 'Active' : 'Inactive'}</span></td>
                       <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -352,7 +352,7 @@ export default function Dashboard() {
                       <td>{b.date}</td>
                       <td>{b.startTime} - {b.endTime}</td>
                       <td>{b.numberOfPlayers}</td>
-                      <td>${b.totalPrice?.toFixed(0)}</td>
+                      <td>₹{b.totalPrice?.toFixed(0)}</td>
                       <td><span className={`status-badge ${b.status}`}>{b.status}</span></td>
                       <td>
                         {b.status === 'confirmed' ? (
@@ -384,7 +384,7 @@ export default function Dashboard() {
                       <tr key={b._id}>
                         <td><strong>{b.court?.name || 'Court'}</strong><span>{b.court?.sport || ''}</span></td>
                         <td>{b.date}</td><td>{b.startTime} - {b.endTime}</td>
-                        <td>{b.numberOfPlayers}</td><td>${b.totalPrice?.toFixed(0)}</td>
+                        <td>{b.numberOfPlayers}</td><td>₹{b.totalPrice?.toFixed(0)}</td>
                         <td><span className={`status-badge ${b.status}`}>{b.status}</span></td>
                         <td>{b.status === 'cancelled' ? b.refundStatus : 'N/A'}</td>
                         <td>{b.status === 'confirmed' && upcoming ? <button onClick={() => handleCancel(b._id)} className="btn btn-danger">Cancel</button> : <span className="muted-text">{b.status === 'cancelled' ? 'Cancelled' : 'Completed'}</span>}</td>

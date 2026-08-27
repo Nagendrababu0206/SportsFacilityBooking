@@ -4,6 +4,11 @@ import { AuthContext } from '../context/AuthContext';
 import { Activity, AlertCircle, UserCheck, ShieldCheck } from 'lucide-react';
 import { MotionDiv, fadeUp } from '../utils/animations';
 
+const DEMO_ACCOUNTS = [
+  { role: 'Student', email: 'student@demo.com', password: '123456' },
+  { role: 'Admin', email: 'admin@demo.com', password: '123456' },
+];
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,17 +24,19 @@ export default function Login() {
     setSubmitting(true);
     const res = await login(email.trim().toLowerCase(), password);
     if (res.success) {
-      if (res.user.role !== role) {
-        setError(`This account is registered as ${res.user.role}. Please switch to ${res.user.role} login.`);
-        setSubmitting(false);
-        return;
-      }
       await waitUntilLoaded();
       navigate('/home', { replace: true });
     } else {
       setError(res.message || 'Invalid credentials');
       setSubmitting(false);
     }
+  };
+
+  const fillDemo = (demo) => {
+    setEmail(demo.email);
+    setPassword(demo.password);
+    setRole(demo.role === 'Admin' ? 'admin' : 'user');
+    setError('');
   };
 
   return (
@@ -76,13 +83,13 @@ export default function Login() {
         <p className="auth-footnote">Don't have an account? <Link to="/register" className="link-highlight">Create Account</Link></p>
 
         <div className="quick-creds">
-          <div className="quick-creds-title">Quick Login</div>
-          <div className="quick-creds-line" onClick={() => { setEmail('student@demo.com'); setPassword('123456'); setRole('user'); }} style={{ cursor: 'pointer' }}>
-            <span>🎓 Student:</span><strong>student@demo.com / 123456</strong>
-          </div>
-          <div className="quick-creds-line" onClick={() => { setEmail('admin@demo.com'); setPassword('123456'); setRole('admin'); }} style={{ cursor: 'pointer' }}>
-            <span>🛡️ Admin:</span><strong>admin@demo.com / 123456</strong>
-          </div>
+          <div className="quick-creds-title">Demo accounts (one-click)</div>
+          {DEMO_ACCOUNTS.map((demo) => (
+            <button key={demo.email} type="button" className="quick-creds-line quick-creds-btn" onClick={() => fillDemo(demo)}>
+              <span><strong>{demo.role}</strong></span>
+              <span>{demo.email}</span>
+            </button>
+          ))}
         </div>
       </MotionDiv>
     </div>

@@ -224,7 +224,7 @@ export default function BookingPage() {
               <MotionDiv variants={fadeUp} style={{ background: 'rgba(79,172,254,0.05)', border: '1px solid rgba(79,172,254,0.15)', padding: '1rem', borderRadius: '12px', marginBottom: '1rem' }}>
                 <h4 style={{ marginBottom: '0.5rem', color: '#fff' }}><Receipt size={16} style={{ verticalAlign: 'middle' }} /> Booking Summary</h4>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                  <span>Base Rate</span><span>${basePrice.toFixed(2)} / hr</span>
+                  <span>Base Rate</span><span>₹{basePrice.toFixed(2)} / hr</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
                   <span>Pricing Mode</span><span>{pricing.label}</span>
@@ -235,7 +235,7 @@ export default function BookingPage() {
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.1rem', color: '#fff', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <span>Total</span><span className="gradient-text">${finalPrice.toFixed(2)}</span>
+                  <span>Total</span><span className="gradient-text">₹{finalPrice.toFixed(2)}</span>
                 </div>
               </MotionDiv>
             );
