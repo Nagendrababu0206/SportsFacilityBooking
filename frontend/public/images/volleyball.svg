@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#deb887"/>
+      <stop offset="100%" stop-color="#c4a265"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)"/>
+  <!-- Court surface -->
+  <rect x="100" y="120" width="600" height="350" fill="url(#sand)" stroke="#fff" stroke-width="3" rx="4"/>
+  <!-- Net -->
+  <line x1="100" y1="295" x2="700" y2="295" stroke="#fff" stroke-width="4"/>
+  <!-- Net mesh pattern -->
+  <line x1="200" y1="280" x2="200" y2="310" stroke="#ccc" stroke-width="1"/>
+  <line x1="300" y1="280" x2="300" y2="310" stroke="#ccc" stroke-width="1"/>
+  <line x1="400" y1="280" x2="400" y2="310" stroke="#ccc" stroke-width="1"/>
+  <line x1="500" y1="280" x2="500" y2="310" stroke="#ccc" stroke-width="1"/>
+  <line x1="600" y1="280" x2="600" y2="310" stroke="#ccc" stroke-width="1"/>
+  <!-- Net posts -->
+  <rect x="90" y="270" width="12" height="50" fill="#888" rx="3"/>
+  <rect x="698" y="270" width="12" height="50" fill="#888" rx="3"/>
+  <!-- Attack lines -->
+  <line x1="100" y1="230" x2="700" y2="230" stroke="#fff" stroke-width="2"/>
+  <line x1="100" y1="360" x2="700" y2="360" stroke="#fff" stroke-width="2"/>
+  <!-- Volleyball -->
+  <circle cx="350" cy="200" r="16" fill="#fff" stroke="#e74c3c" stroke-width="2"/>
+  <path d="M336 192 Q350 200 336 208" fill="none" stroke="#3498db" stroke-width="2"/>
+  <path d="M364 192 Q350 200 364 208" fill="none" stroke="#f1c40f" stroke-width="2"/>
+  <!-- Lights -->
+  <circle cx="200" cy="60" r="8" fill="#ffeaa7" opacity="0.6"/>
+  <circle cx="400" cy="60" r="8" fill="#ffeaa7" opacity="0.6"/>
+  <circle cx="600" cy="60" r="8" fill="#ffeaa7" opacity="0.6"/>
+  <!-- Text -->
+  <text x="400" y="505" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff" opacity="0.9">🏐 Volleyball Court</text>
+</svg>

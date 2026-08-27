@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f0c29"/>
+      <stop offset="50%" stop-color="#302b63"/>
+      <stop offset="100%" stop-color="#24243e"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c97d3e"/>
+      <stop offset="100%" stop-color="#8b5a2b"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)"/>
+  <!-- Court floor -->
+  <rect x="50" y="220" width="700" height="280" fill="url(#floor)" rx="6"/>
+  <!-- Court lines -->
+  <rect x="50" y="220" width="700" height="280" fill="none" stroke="#fff" stroke-width="3" rx="6"/>
+  <!-- Center circle -->
+  <circle cx="400" cy="360" r="60" fill="none" stroke="#fff" stroke-width="2"/>
+  <!-- Center line -->
+  <line x1="400" y1="220" x2="400" y2="500" stroke="#fff" stroke-width="2"/>
+  <!-- Left key -->
+  <rect x="50" y="290" width="150" height="140" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="200" cy="360" r="50" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <!-- Right key -->
+  <rect x="600" y="290" width="150" height="140" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="600" cy="360" r="50" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <!-- Backboards -->
+  <rect x="55" y="330" width="5" height="60" fill="#fff" opacity="0.8"/>
+  <rect x="740" y="330" width="5" height="60" fill="#fff" opacity="0.8"/>
+  <!-- Hoops -->
+  <circle cx="80" cy="360" r="12" fill="none" stroke="#ff6b35" stroke-width="3"/>
+  <circle cx="720" cy="360" r="12" fill="none" stroke="#ff6b35" stroke-width="3"/>
+  <!-- Basketball -->
+  <circle cx="400" cy="360" r="16" fill="#ff6b35" stroke="#cc5522" stroke-width="2"/>
+  <path d="M384 360 Q400 345 416 360" fill="none" stroke="#333" stroke-width="1.5"/>
+  <line x1="400" y1="344" x2="400" y2="376" stroke="#333" stroke-width="1.5"/>
+  <!-- Lights -->
+  <rect x="200" y="80" width="400" height="10" fill="#444" rx="5"/>
+  <circle cx="250" cy="90" r="8" fill="#ffeaa7" filter="url(#glow)" opacity="0.8"/>
+  <circle cx="400" cy="90" r="8" fill="#ffeaa7" filter="url(#glow)" opacity="0.8"/>
+  <circle cx="550" cy="90" r="8" fill="#ffeaa7" filter="url(#glow)" opacity="0.8"/>
+  <!-- Text -->
+  <text x="400" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" opacity="0.9">🏀 Basketball Arena</text>
+</svg>

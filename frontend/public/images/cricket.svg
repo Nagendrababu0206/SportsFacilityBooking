@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f2027"/>
+      <stop offset="40%" stop-color="#203a43"/>
+      <stop offset="100%" stop-color="#2c5364"/>
+    </linearGradient>
+    <linearGradient id="pitch" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6b8e23"/>
+      <stop offset="100%" stop-color="#4a6b1a"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="520" fill="url(#sky)"/>
+  <!-- Ground -->
+  <rect x="0" y="220" width="800" height="300" fill="url(#pitch)"/>
+  <!-- Pitch strip (22 yards) -->
+  <rect x="300" y="250" width="200" height="250" fill="#c2b280" stroke="#fff" stroke-width="2" rx="2"/>
+  <!-- Crease lines -->
+  <line x1="330" y1="290" x2="470" y2="290" stroke="#fff" stroke-width="2"/>
+  <line x1="330" y1="460" x2="470" y2="460" stroke="#fff" stroke-width="2"/>
+  <!-- Stumps - Batting end -->
+  <rect x="385" y="450" width="4" height="25" fill="#8B4513"/>
+  <rect x="395" y="450" width="4" height="25" fill="#8B4513"/>
+  <rect x="405" y="450" width="4" height="25" fill="#8B4513"/>
+  <line x1="383" y1="450" x2="411" y2="450" stroke="#c4a265" stroke-width="2"/>
+  <!-- Stumps - Bowling end -->
+  <rect x="385" y="275" width="4" height="25" fill="#8B4513"/>
+  <rect x="395" y="275" width="4" height="25" fill="#8B4513"/>
+  <rect x="405" y="275" width="4" height="25" fill="#8B4513"/>
+  <line x1="383" y1="275" x2="411" y2="275" stroke="#c4a265" stroke-width="2"/>
+  <!-- Boundary circle -->
+  <ellipse cx="400" cy="370" rx="350" ry="180" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="10,5" opacity="0.5"/>
+  <!-- Cricket ball -->
+  <circle cx="400" cy="370" r="12" fill="#cc0000" stroke="#8B0000" stroke-width="2"/>
+  <line x1="390" y1="365" x2="410" y2="375" stroke="#fff" stroke-width="1.5"/>
+  <!-- Floodlights -->
+  <rect x="50" y="40" width="6" height="180" fill="#555"/>
+  <circle cx="53" cy="35" r="14" fill="#ffd700" filter="url(#glow)" opacity="0.8"/>
+  <rect x="744" y="40" width="6" height="180" fill="#555"/>
+  <circle cx="747" cy="35" r="14" fill="#ffd700" filter="url(#glow)" opacity="0.8"/>
+  <!-- Pavilion silhouette -->
+  <rect x="620" y="160" width="130" height="60" fill="#1a3a2a" rx="4"/>
+  <rect x="630" y="150" width="110" height="15" fill="#2a4a3a" rx="3"/>
+  <!-- Text -->
+  <text x="400" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" opacity="0.9">🏏 Cricket Ground</text>
+</svg>

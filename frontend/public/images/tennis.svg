@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2a6c"/>
+      <stop offset="50%" stop-color="#b21f1f"/>
+      <stop offset="100%" stop-color="#fdbb2d"/>
+    </linearGradient>
+    <linearGradient id="court" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2d6a4f"/>
+      <stop offset="100%" stop-color="#1b4332"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="520" fill="url(#sky)"/>
+  <!-- Ground -->
+  <rect x="0" y="280" width="800" height="240" fill="url(#court)" rx="0"/>
+  <!-- Court surface -->
+  <rect x="100" y="300" width="600" height="200" fill="#3a7d5c" stroke="#fff" stroke-width="3" rx="4"/>
+  <!-- Net -->
+  <line x1="400" y1="300" x2="400" y2="500" stroke="#ddd" stroke-width="2" stroke-dasharray="8,4"/>
+  <!-- Service boxes -->
+  <rect x="100" y="300" width="300" height="100" fill="none" stroke="#fff" stroke-width="2"/>
+  <rect x="400" y="300" width="300" height="100" fill="none" stroke="#fff" stroke-width="2"/>
+  <rect x="100" y="400" width="300" height="100" fill="none" stroke="#fff" stroke-width="2"/>
+  <rect x="400" y="400" width="300" height="100" fill="none" stroke="#fff" stroke-width="2"/>
+  <!-- Center line -->
+  <line x1="250" y1="300" x2="250" y2="500" stroke="#fff" stroke-width="1.5"/>
+  <line x1="550" y1="300" x2="550" y2="500" stroke="#fff" stroke-width="1.5"/>
+  <!-- Floodlights -->
+  <rect x="60" y="100" width="8" height="180" fill="#555"/>
+  <circle cx="64" cy="95" r="15" fill="#ffd700" filter="url(#glow)" opacity="0.9"/>
+  <rect x="732" y="100" width="8" height="180" fill="#555"/>
+  <circle cx="736" cy="95" r="15" fill="#ffd700" filter="url(#glow)" opacity="0.9"/>
+  <!-- Tennis ball -->
+  <circle cx="350" cy="380" r="10" fill="#c8e630" stroke="#a0b828" stroke-width="1.5"/>
+  <path d="M342 374 Q350 380 342 386" fill="none" stroke="#fff" stroke-width="1.5"/>
+  <!-- Text -->
+  <text x="400" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" opacity="0.9">🎾 Tennis Court</text>
+</svg>

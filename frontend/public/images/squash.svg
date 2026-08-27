@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0c0c1d"/>
+      <stop offset="100%" stop-color="#1a1a3e"/>
+    </linearGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e8e0d4"/>
+      <stop offset="100%" stop-color="#d4ccc0"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c97d3e"/>
+      <stop offset="100%" stop-color="#8b5a2b"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)"/>
+  <!-- Back wall -->
+  <rect x="100" y="50" width="600" height="300" fill="url(#wall)" rx="2"/>
+  <!-- Floor -->
+  <path d="M100 350 L0 520 L800 520 L700 350 Z" fill="url(#floor)"/>
+  <!-- Tin line -->
+  <line x1="100" y1="300" x2="700" y2="300" stroke="#e74c3c" stroke-width="4"/>
+  <!-- Service line -->
+  <line x1="100" y1="200" x2="700" y2="200" stroke="#e74c3c" stroke-width="2"/>
+  <!-- Out line top -->
+  <line x1="100" y1="50" x2="700" y2="50" stroke="#e74c3c" stroke-width="3"/>
+  <!-- Half court line -->
+  <line x1="400" y1="350" x2="400" y2="520" stroke="#fff" stroke-width="2"/>
+  <!-- Service boxes -->
+  <rect x="150" y="380" width="200" height="100" fill="none" stroke="#fff" stroke-width="2"/>
+  <rect x="450" y="380" width="200" height="100" fill="none" stroke="#fff" stroke-width="2"/>
+  <!-- Side walls perspective -->
+  <line x1="100" y1="50" x2="0" y2="0" stroke="#bbb" stroke-width="2"/>
+  <line x1="700" y1="50" x2="800" y2="0" stroke="#bbb" stroke-width="2"/>
+  <!-- Squash ball -->
+  <circle cx="380" cy="250" r="8" fill="#111" stroke="#333" stroke-width="1.5"/>
+  <!-- Glass back wall effect -->
+  <rect x="100" y="350" width="600" height="5" fill="#9dd" opacity="0.3"/>
+  <!-- Text -->
+  <text x="400" y="510" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff" opacity="0.9">🎯 Squash Arena</text>
+</svg>

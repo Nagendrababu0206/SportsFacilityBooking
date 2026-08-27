@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#141e30"/>
+      <stop offset="100%" stop-color="#243b55"/>
+    </linearGradient>
+    <linearGradient id="court" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2e7d32"/>
+      <stop offset="100%" stop-color="#1b5e20"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)"/>
+  <!-- Court -->
+  <rect x="150" y="80" width="500" height="400" fill="url(#court)" stroke="#fff" stroke-width="3" rx="4"/>
+  <!-- Net line -->
+  <line x1="150" y1="280" x2="650" y2="280" stroke="#fff" stroke-width="3"/>
+  <!-- Singles sidelines -->
+  <rect x="200" y="80" width="400" height="400" fill="none" stroke="#fff" stroke-width="1.5"/>
+  <!-- Service lines -->
+  <line x1="150" y1="200" x2="650" y2="200" stroke="#fff" stroke-width="1.5"/>
+  <line x1="150" y1="360" x2="650" y2="360" stroke="#fff" stroke-width="1.5"/>
+  <!-- Center lines -->
+  <line x1="400" y1="200" x2="400" y2="280" stroke="#fff" stroke-width="1.5"/>
+  <line x1="400" y1="280" x2="400" y2="360" stroke="#fff" stroke-width="1.5"/>
+  <!-- Net posts -->
+  <rect x="140" y="272" width="10" height="16" fill="#bbb" rx="2"/>
+  <rect x="650" y="272" width="10" height="16" fill="#bbb" rx="2"/>
+  <!-- Shuttlecock -->
+  <circle cx="350" cy="230" r="6" fill="#fff"/>
+  <line x1="350" y1="224" x2="345" y2="210" stroke="#fff" stroke-width="1.5"/>
+  <line x1="350" y1="224" x2="350" y2="208" stroke="#fff" stroke-width="1.5"/>
+  <line x1="350" y1="224" x2="355" y2="210" stroke="#fff" stroke-width="1.5"/>
+  <!-- Lights -->
+  <circle cx="200" cy="40" r="6" fill="#ffeaa7" opacity="0.7"/>
+  <circle cx="400" cy="40" r="6" fill="#ffeaa7" opacity="0.7"/>
+  <circle cx="600" cy="40" r="6" fill="#ffeaa7" opacity="0.7"/>
+  <!-- Text -->
+  <text x="400" y="510" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#fff" opacity="0.85">🏸 Badminton Court</text>
+</svg>
