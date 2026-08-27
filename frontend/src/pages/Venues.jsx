@@ -4,6 +4,39 @@ import { AlertCircle, CalendarPlus, MapPin, Navigation, ShieldCheck, Star } from
 import { API_BASE_URL } from '../config';
 import { MotionDiv, MotionSection, fadeUp, stagger } from '../utils/animations';
 
+/* ── Sport → SVG illustration mapping ── */
+const SPORT_SVG = {
+  Tennis:     '/images/tennis.svg',
+  Basketball: '/images/basketball.svg',
+  Badminton:  '/images/badminton.svg',
+  Football:   '/images/football.svg',
+  Volleyball: '/images/volleyball.svg',
+  Squash:     '/images/squash.svg',
+  Cricket:    '/images/cricket.svg',
+};
+
+/* Sport emoji for badge overlay */
+const SPORT_EMOJI = {
+  Tennis:     '🎾',
+  Basketball: '🏀',
+  Badminton:  '🏸',
+  Football:   '⚽',
+  Volleyball: '🏐',
+  Squash:     '🎱',
+  Cricket:    '🏏',
+};
+
+/* Sport accent colour for badge */
+const SPORT_COLOR = {
+  Tennis:     '#2d6a4f',
+  Basketball: '#c97d3e',
+  Badminton:  '#5b2d8a',
+  Football:   '#1b6b3a',
+  Volleyball: '#c25b1a',
+  Squash:     '#1a4a7a',
+  Cricket:    '#7a4a1a',
+};
+
 function haversine(lat1, lon1, lat2, lon2) {
   if (!lat1 || !lon1 || !lat2 || !lon2) return null;
   const R = 6371, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
@@ -26,7 +59,7 @@ export default function Venues() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         p => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }),
-        () => setUserLocation({ lat: 37.4264, lng: -122.1699 })
+        () => setUserLocation({ lat: 17.3850, lng: 78.4867 })
       );
     }
   }, []);
@@ -60,38 +93,77 @@ export default function Venues() {
       >
         {error && <div className="alert-card"><AlertCircle size={18} /><span>{error}</span></div>}
         <MotionDiv variants={fadeUp} className="section-toolbar">
-          <div><span className="eyebrow">Nearby grounds & arenas</span><h2>{sorted.length} courts ready to reserve</h2></div>
+          <div><span className="eyebrow">Nearby grounds &amp; arenas</span><h2>{sorted.length} courts ready to reserve</h2></div>
           <span className="location-pill"><MapPin size={16} />{userLocation ? 'Showing nearest first' : 'Enable location for sorting'}</span>
         </MotionDiv>
+
         <div className="venue-grid">
-          {sorted.map((court, i) => (
-            <MotionDiv key={court._id} variants={fadeUp} className="venue-card glass-panel">
-              <div className="venue-image-wrap">
-                <img src={court.imageUrl || 'https://placehold.co/800x520?text=Venue'} alt={court.name} className="venue-image"
-                  onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/800x520?text=Venue'; }} />
-              </div>
-              <div className="venue-body">
-                <div className="venue-title-row">
-                  <div>
-                    <h3>{court.name}</h3>
-                    <div className="venue-meta-line">
-                      <span><Star size={14} /> 4.9</span>
-                      <span><ShieldCheck size={14} /> {court.capacity} players</span>
+          {sorted.map((court) => {
+            const sportSvg = SPORT_SVG[court.sport] || '/images/cricket.svg';
+            const sportEmoji = SPORT_EMOJI[court.sport] || '🏟️';
+            const accentColor = SPORT_COLOR[court.sport] || '#2a4a7a';
+
+            return (
+              <MotionDiv key={court._id} variants={fadeUp} className="venue-card glass-panel">
+                {/* ── Image / SVG area ── */}
+                <div className="venue-image-wrap">
+                  <img
+                    src={court.imageUrl || sportSvg}
+                    alt={court.name}
+                    className="venue-image"
+                    onError={e => {
+                      e.target.onerror = null;
+                      e.target.src = sportSvg;
+                    }}
+                  />
+                  {/* SVG icon watermark in bottom-right corner */}
+                  <div className="venue-svg-badge" style={{ background: accentColor }}>
+                    <img
+                      src={sportSvg}
+                      alt={court.sport}
+                      className="venue-svg-icon"
+                    />
+                  </div>
+                  {/* Sport type pill overlay */}
+                  <div className="court-badge">
+                    <span>{sportEmoji}</span>
+                    <span>{court.sport}</span>
+                  </div>
+                </div>
+
+                {/* ── Card body ── */}
+                <div className="venue-body">
+                  <div className="venue-title-row">
+                    <div>
+                      <h3>{court.name}</h3>
+                      <div className="venue-meta-line">
+                        <span><Star size={14} /> 4.9</span>
+                        <span><ShieldCheck size={14} /> {court.capacity} players</span>
+                      </div>
                     </div>
+                    <div className="court-price">₹{court.pricePerHour}<span>/hr</span></div>
                   </div>
-                  <div className="court-price">${court.pricePerHour}<span>/hr</span></div>
-                </div>
-                <p className="court-description">{court.description}</p>
-                <div className="venue-footer">
-                  <div>
-                    <span className="distance-label"><MapPin size={14} />{court.distance !== undefined ? `${court.distance.toFixed(1)} km away` : 'Distance N/A'}</span>
-                    {court.location?.address && <div className="venue-meta-line" style={{ marginTop: '0.75rem' }}><span>{court.location.address}</span></div>}
+                  <p className="court-description">{court.description}</p>
+                  <div className="venue-footer">
+                    <div>
+                      <span className="distance-label">
+                        <MapPin size={14} />
+                        {court.distance !== undefined ? `${court.distance.toFixed(1)} km away` : 'Distance N/A'}
+                      </span>
+                      {court.location?.address && (
+                        <div className="venue-meta-line" style={{ marginTop: '0.75rem' }}>
+                          <span>{court.location.address}</span>
+                        </div>
+                      )}
+                    </div>
+                    <button onClick={() => navigate(`/booking/${court._id}`)} className="btn btn-primary">
+                      <CalendarPlus size={16} /> Book Slot
+                    </button>
                   </div>
-                  <button onClick={() => navigate(`/booking/${court._id}`)} className="btn btn-primary"><CalendarPlus size={16} /> Book Slot</button>
                 </div>
-              </div>
-            </MotionDiv>
-          ))}
+              </MotionDiv>
+            );
+          })}
         </div>
       </MotionSection>
     </div>
