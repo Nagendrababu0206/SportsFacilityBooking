@@ -64,6 +64,12 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        <footer className="site-footer">
+          <div className="container footer-inner">
+            <span>SportSync · Campus sports facility booking</span>
+            <span>Built as a college project · Node.js + React</span>
+          </div>
+        </footer>
       </Router>
     </AuthProvider>
   );

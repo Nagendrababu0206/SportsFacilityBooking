@@ -23,18 +23,25 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const fetchUser = async () => {
+  const fetchUser = async (retries = 1) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success) setUser(data.user);
-      else logout();
-    } catch {
-      logout();
-    } finally {
-      setLoading(false);
+      if (data.success) {
+        setUser(data.user);
+        setLoading(false);
+      } else {
+        logout();
+      }
+    } catch (err) {
+      if (retries > 0) {
+        console.warn(`Backend not ready, retrying in 1s... (${retries} attempts left)`);
+        setTimeout(() => fetchUser(retries - 1), 1000);
+      } else {
+        logout();
+      }
     }
   };
 
